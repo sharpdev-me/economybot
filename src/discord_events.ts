@@ -1,25 +1,30 @@
 import {Client, Guild, Message, DMChannel, NewsChannel, TextChannel} from "discord.js";
 
-import * as fs from "fs";
-import * as path from "path";
+import { readdir } from "fs";
+import { resolve } from "path";
+
+import * as database from "./database";
 
 export const commands: any = {};
 
 export function register_events(client: Client) {
-    fs.readdir(path.resolve(__dirname, "./commands"), (err, files) => {
+    readdir(resolve(__dirname, "./commands"), (err, files) => {
         if(err) return console.error(err);
         for (const file of files) {
-            const filePath = path.resolve(__dirname, "./commands/", file);
+            const filePath = resolve(__dirname, "./commands/", file);
             const props = require(filePath);
+            if(props.aliases) {
+                for (let i = 0; i < props.aliases.length; i++) {
+                    const alias = props.aliases[i];
+                    commands[alias] = props;
+                }
+            }
             commands[props.name] = props;
         }
 
         client.on("ready", () => {
-
-        });
-
-        client.on("guildAdd", (guild: Guild) => {
-            
+            console.log("Bot Online");
+            console.log(`Guilds: ${client.guilds.cache.size}\nUsers: ${client.users.cache.size}`);
         });
 
         client.on("message", (message: Message) => {
@@ -27,17 +32,20 @@ export function register_events(client: Client) {
             if(message.channel instanceof NewsChannel) return;
             if(message.channel instanceof DMChannel) {
                 if(!message.content.startsWith("$")) return;
-                // Handle command sent to the bot via DMs
+                // Handle command sent to the bot via DMs6
                 const split = splitMessage(message, "$");
                 const cmd = commands[split[1]];
                 if(!cmd) return;
-                cmd.run(split[0], true, message);
+                cmd.run(split[0], message);
             } else if(message.channel instanceof TextChannel) {
-                // Handle command sent to the bot in guild channel
-                const split = splitMessage(message, "$");
-                const cmd = commands[split[1]];
-                if(!cmd) return;
-                cmd.run(split[0], false, message);
+                // Fetch GuildSettings
+                database.getGuildSettings(message.channel.id).catch(console.error).then((guildSettings: database.GuildSettings) => {
+                    if(!message.content.startsWith(guildSettings.prefix)) return;
+                    const split = splitMessage(message, guildSettings.prefix);
+                    const cmd = commands[split[1]];
+                    if(!cmd) return;
+                    cmd.run(split[0], message, guildSettings);
+                });
             }
         });
     });
@@ -46,7 +54,5 @@ export function register_events(client: Client) {
 function splitMessage(message: Message, prefix: string): [string[], string] {
     const content = message.content;
     const args = content.slice(prefix.length).trim().split(/ +/g);
-    const command = args.shift().toLowerCase();
-
-    return [args, command];
+    return [args, args.shift().toLowerCase()]
 }
