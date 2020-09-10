@@ -1,12 +1,11 @@
-import { Message, DMChannel } from "discord.js";
+import { Message } from "discord.js";
+import { GuildSettings } from "../database";
 
-export function run(args: string[], isDM: boolean, message: Message) {
+export async function run(args: string[], message: Message, settings?: GuildSettings) {
     let current = new Date();
-    message.channel.send("Pong!").catch(console.error).then(() => {
+    message.channel.send("Pong!").catch(console.error).then((message: Message) => {
         let newDate = new Date();
-        message.author.createDM().catch(console.error).then((dm: DMChannel) => {
-            dm.send(newDate.getMilliseconds() - current.getMilliseconds()).catch(console.error);
-        });
+        message.edit("Pong! `" + (newDate.getMilliseconds() - current.getMilliseconds()) + "ms`").catch(console.error);
     })
 }
 
