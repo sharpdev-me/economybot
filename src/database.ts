@@ -65,6 +65,14 @@ export async function getBalance(userID: Snowflake, guildID: Snowflake): Promise
     return new UserBalance(balance.balance, balance.userID, balance.guildID);
 }
 
+export async function getBalances(guildID: Snowflake): Promise<UserBalance[]> {
+    const client = await getClient();
+
+    const balances = await client.db("economybot").collection<UserBalance>("balances").find({guildID: guildID});
+    return (await balances.toArray()).map(ub => new UserBalance(ub.balance, ub.userID, ub.guildID)).sort((a,b) => b.balance - a.balance);
+    
+}
+
 export class UserBalance {
     balance: number;
     readonly userID: Snowflake;
