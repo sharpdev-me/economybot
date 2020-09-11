@@ -7,8 +7,8 @@ import * as database from "./database";
 
 export const commands: any = {};
 
-export function register_events(client: Client) {
-    readdir(resolve(__dirname, "./commands"), (err, files) => {
+export async function register_events(client: Client) {
+    readdir(resolve(__dirname, "./commands"), async (err, files) => {
         if(err) return console.error(err);
         for (const file of files) {
             const filePath = resolve(__dirname, "./commands/", file);
@@ -22,12 +22,12 @@ export function register_events(client: Client) {
             commands[props.name] = props;
         }
 
-        client.on("ready", () => {
+        client.on("ready", async () => {
             console.log("Bot Online");
             console.log(`Guilds: ${client.guilds.cache.size}\nUsers: ${client.users.cache.size}`);
         });
 
-        client.on("message", (message: Message) => {
+        client.on("message", async (message: Message) => {
             if(message.author.bot) return;
             if(message.channel instanceof NewsChannel) return;
             if(message.channel instanceof DMChannel) {
