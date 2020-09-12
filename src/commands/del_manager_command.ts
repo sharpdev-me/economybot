@@ -19,7 +19,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
         if(index === -1) {
             message.channel.send(`${member.user.username}#${member.user.discriminator} is not a manager of your server!`).catch(console.error);
         } else {
-            currentManagers[index] = null;
+            currentManagers.splice(index, 1);
         }
     });
 
