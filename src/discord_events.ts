@@ -1,4 +1,4 @@
-import {Client, Guild, Message, DMChannel, NewsChannel, TextChannel} from "discord.js";
+import {Client, Message, DMChannel, NewsChannel, TextChannel} from "discord.js";
 
 import { readdir } from "fs";
 import { resolve } from "path";
@@ -32,7 +32,7 @@ export async function register_events(client: Client) {
             if(message.channel instanceof NewsChannel) return;
             if(message.channel instanceof DMChannel) {
                 if(!message.content.startsWith("$")) return;
-                // Handle command sent to the bot via DMs6
+                // Handle command sent to the bot via DMs
                 const split = splitMessage(message, "$");
                 const cmd = commands[split[1]];
                 if(!cmd) return;
