@@ -73,6 +73,22 @@ export async function getBalances(guildID: Snowflake): Promise<UserBalance[]> {
     
 }
 
+export async function getEventSettings(guildID: Snowflake): Promise<EventSettings> {
+    const client = await getClient();
+
+    const eventSettings: EventSettings | null = await client.db("economybot").collection<EventSettings>("eventSettings").findOne({id: guildID});
+    if(!eventSettings) {
+        return {id: guildID,inviteReward:0,messageCooldown:0,messageReward:0,watchInvites:false,watchMessages:false};
+    }
+    return eventSettings;
+}
+
+export async function saveEventSettings(eventSettings: EventSettings): Promise<void> {
+    Promise.resolve().then(() => {
+        client.db("economybot").collection<EventSettings>("eventSettings").replaceOne({id:eventSettings.id}, eventSettings, {upsert: true}).catch(console.error).then(console.dir);
+    });
+}
+
 export class UserBalance {
     balance: number;
     readonly userID: Snowflake;
