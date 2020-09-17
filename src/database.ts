@@ -1,57 +1,30 @@
 import { MongoClient } from "mongodb";
 
 import { Snowflake } from "discord.js";
+import { Serializable } from "./cache";
 
 const url = `mongodb://10.0.0.194:27017/`
 
 let client: MongoClient;
 
-let cache: any = {}
-
 export async function getClient(): Promise<MongoClient> {
-    return new Promise<MongoClient>((resolve, reject) => {
-        if(!client) {
-            new MongoClient(url, {useNewUrlParser: true, useUnifiedTopology: true, auth: {user: "economy", password: process.env.ECONOMY_MONGO}, authSource: "economybot"}).connect().catch(reject).then((cl: MongoClient) => {
-                client = cl;
-                resolve(cl);
-            });
-        } else {
-            resolve(client);
-        }
-    });
+    if(!client) {
+        client = await new MongoClient(url, {useNewUrlParser: true, useUnifiedTopology: true, auth: {user: "economy", password: process.env.ECONOMY_MONGO}, authSource: "economybot"}).connect();
+    }
+    return client;
 }
 
-export function close(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        client.close().catch(reject).then(resolve);
-    });
+export async function close(): Promise<void> {
+    client.close();
 }
 
-export function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
-    return new Promise<GuildSettings>((resolve, reject) => {
-        if(!cache[id]) {
-            getClient().catch(reject).then((client: MongoClient) => {
-                client.db("economybot").collection<GuildSettings>("guildSettings").findOne({id: id}).catch(reject).then((settings: GuildSettings) => {
-                    if(!settings) {
-                        const f: GuildSettings = {id: id,prefix:"$",defaultBalance:100,currency:"coins",managers:[]}
-                        saveGuildSettings(f).catch(reject);
-                        return resolve(f);
-                    }
-                    resolve(settings);
-                });
-            })
-        } else {
-            return resolve(cache[id]);
-        }
-    })
-}
-
-export function saveGuildSettings(settings: GuildSettings): Promise<void> {
-    return new Promise((resolve, reject) => {
-        getClient().catch(reject).then((client: MongoClient) => {
-            client.db("economybot").collection<GuildSettings>("guildSettings").replaceOne({id:settings.id}, settings, {upsert: true}).catch(reject).then(() => resolve());
-        })
-    });
+export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
+    const client = await getClient();
+    const settings: GuildSettings | void = await client.db("economybot").collection<GuildSettings>("guildSettings").findOne({id:id});
+    if(!settings) {
+        return new GuildSettings(id, "$", 100, "coins", []);
+    }
+    return new GuildSettings(settings.id, settings.prefix, settings.defaultBalance, settings.currency, settings.managers);
 }
 
 export async function getBalance(userID: Snowflake, guildID: Snowflake): Promise<UserBalance> {
@@ -78,21 +51,16 @@ export async function getEventSettings(guildID: Snowflake): Promise<EventSetting
 
     const eventSettings: EventSettings | null = await client.db("economybot").collection<EventSettings>("eventSettings").findOne({id: guildID});
     if(!eventSettings) {
-        return {id: guildID,inviteReward:0,messageCooldown:0,messageReward:0,watchInvites:false,watchMessages:false};
+        return new EventSettings(guildID, false, 0, 0, false, 0);
     }
-    return eventSettings;
-}
-
-export async function saveEventSettings(eventSettings: EventSettings): Promise<void> {
-    Promise.resolve().then(() => {
-        client.db("economybot").collection<EventSettings>("eventSettings").replaceOne({id:eventSettings.id}, eventSettings, {upsert: true}).catch(console.error).then(console.dir);
-    });
+    return new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.watchInvites, eventSettings.inviteReward);
 }
 
 export class UserBalance {
-    balance: number;
     readonly userID: Snowflake;
     readonly guildID: Snowflake;
+
+    balance: number;
 
     constructor(balance: number, userID: Snowflake, guildID: Snowflake) {
         this.balance = balance;
@@ -107,7 +75,7 @@ export class UserBalance {
     }
 }
 
-export interface GuildSettings {
+export class GuildSettings implements Serializable {
     readonly id: Snowflake;
 
     prefix: string;
@@ -116,9 +84,27 @@ export interface GuildSettings {
     currency: string;
 
     managers: Snowflake[];
+
+    constructor(id: Snowflake, prefix: string, defaultBalance: number, currency: string, managers: Snowflake[]) {
+        this.id = id;
+        this.prefix = prefix;
+        this.defaultBalance = defaultBalance;
+        this.currency = currency;
+        this.managers = managers;
+    }
+
+    serialize(): string {
+        return JSON.stringify(this);
+    }
+
+    async save() {
+        const client = await getClient();
+
+        client.db("economybot").collection("guildSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
+    }
 }
 
-export interface EventSettings {
+export class EventSettings {
     readonly id: Snowflake;
 
     watchMessages: boolean;
@@ -127,4 +113,19 @@ export interface EventSettings {
 
     watchInvites: boolean;
     inviteReward: number;
+
+    constructor(id: Snowflake, watchMessages: boolean, messageReward: number, messageCooldown: number, watchInvites: boolean, inviteReward: number) {
+        this.id = id;
+        this.watchMessages = watchMessages;
+        this.messageReward = messageReward;
+        this.messageCooldown = messageCooldown;
+        this.watchInvites = watchInvites;
+        this.inviteReward = inviteReward;
+    }
+
+    async save() {
+        const client = await getClient();
+        
+        client.db("economybot").collection("eventSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
+    }
 }

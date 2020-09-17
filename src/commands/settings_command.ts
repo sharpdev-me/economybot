@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { getEventSettings, GuildSettings, saveEventSettings, saveGuildSettings } from "../database";
+import { getEventSettings, GuildSettings } from "../database";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -110,17 +110,14 @@ export async function run(args: string[], message: Message, settings?: GuildSett
                 return;
 
         }
-        saveGuildSettings(settings).catch((err) => {
-            message.channel.send("There was an error saving your settings!").catch(console.error);
-            console.error(err);
-        }).then(() => {
-            saveEventSettings(eventSettings).catch((e) => {
-                message.channel.send("There was an error saving your settings!").catch(console.error);
-                console.error(e);
-            }).then(() => {
-                message.channel.send(`The value of \`${args[0]}\` has been set to \`${args[1]}\``).catch(console.error);
-            });
-        })
+        try {
+            await settings.save()
+            await eventSettings.save();
+            message.channel.send(`The value of \`${args[0]}\` has been set to \`${args[1]}\``).catch(console.error);
+        } catch(e) {
+            console.error(e);
+            message.channel.send("There was an error saving your settings. Please report this as soon as possible.").catch(console.error);
+        }
     }
 }
 
