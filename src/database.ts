@@ -1,7 +1,8 @@
 import { MongoClient } from "mongodb";
 
 import { Snowflake } from "discord.js";
-import { Serializable } from "./cache";
+
+import * as cache from "./cache";
 
 const url = `mongodb://10.0.0.194:27017/`
 
@@ -19,12 +20,20 @@ export async function close(): Promise<void> {
 }
 
 export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
+    if(await cache.exists("guildSettings." + id) === 1) {
+        cache.expire("guildSettings." + id, 30);
+        return GuildSettings.fromJSON(await cache.get("guildSettings." + id));
+    }
     const client = await getClient();
     const settings: GuildSettings | void = await client.db("economybot").collection<GuildSettings>("guildSettings").findOne({id:id});
+    let s: GuildSettings;
     if(!settings) {
-        return new GuildSettings(id, "$", 100, "coins", []);
+        s = new GuildSettings(id, "$", 100, "coins", []);
+    } else {
+        s = new GuildSettings(settings.id, settings.prefix, settings.defaultBalance, settings.currency, settings.managers);
     }
-    return new GuildSettings(settings.id, settings.prefix, settings.defaultBalance, settings.currency, settings.managers);
+    cache.set("guildSettings." + id, JSON.stringify(s)).catch(console.error).then(() => cache.expire("guildSettings." + id, 30));
+    return s;
 }
 
 export async function getBalance(userID: Snowflake, guildID: Snowflake): Promise<UserBalance> {
@@ -47,13 +56,21 @@ export async function getBalances(guildID: Snowflake): Promise<UserBalance[]> {
 }
 
 export async function getEventSettings(guildID: Snowflake): Promise<EventSettings> {
+    if(await cache.exists("eventSettings." + guildID) === 1) {
+        cache.expire("eventSettings." + guildID, 30);
+        return EventSettings.fromJSON(await cache.get("eventSettings." + guildID));
+    }
     const client = await getClient();
 
     const eventSettings: EventSettings | null = await client.db("economybot").collection<EventSettings>("eventSettings").findOne({id: guildID});
+    let s: EventSettings;
     if(!eventSettings) {
-        return new EventSettings(guildID, false, 0, 0, false, 0);
+        s = new EventSettings(guildID, false, 0, 0, false, 0);
+    } else {
+        s = new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.watchInvites, eventSettings.inviteReward);
     }
-    return new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.watchInvites, eventSettings.inviteReward);
+    cache.set("eventSettings." + guildID, JSON.stringify(s)).catch(console.error).then(() => cache.expire("eventSettings." + guildID, 30));
+    return s;
 }
 
 export class UserBalance {
@@ -75,7 +92,8 @@ export class UserBalance {
     }
 }
 
-export class GuildSettings implements Serializable {
+
+export class GuildSettings {
     readonly id: Snowflake;
 
     prefix: string;
@@ -93,14 +111,15 @@ export class GuildSettings implements Serializable {
         this.managers = managers;
     }
 
-    serialize(): string {
-        return JSON.stringify(this);
-    }
-
     async save() {
         const client = await getClient();
 
         client.db("economybot").collection("guildSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
+    }
+
+    static fromJSON(json: string): GuildSettings {
+        const obj = JSON.parse(json);
+        return new GuildSettings(obj.id, obj.prefix, obj.defaultBalance, obj.currency, obj.managers)
     }
 }
 
@@ -127,5 +146,10 @@ export class EventSettings {
         const client = await getClient();
         
         client.db("economybot").collection("eventSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
+    }
+
+    static fromJSON(json: string): EventSettings {
+        const obj = JSON.parse(json);
+        return new EventSettings(obj.id, obj.watchMessages, obj.messageReward, obj.messageCooldown, obj.watchInvites, obj.inviteReward);
     }
 }
