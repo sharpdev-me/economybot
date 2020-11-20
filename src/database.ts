@@ -2,6 +2,8 @@ import { MongoClient } from "mongodb";
 
 import { Snowflake } from "discord.js";
 
+import * as crypto from "crypto";
+
 import * as cache from "./cache";
 
 const url = `mongodb://10.0.0.194:27017/`
@@ -73,6 +75,90 @@ export async function getEventSettings(guildID: Snowflake): Promise<EventSetting
     return s;
 }
 
+export async function isToken(token: string): Promise<boolean> {
+    const client = await getClient();
+
+    return (await client.db("economybot").collection("api_tokens").findOne({token:token}) != null);
+}
+
+export async function getToken(token: string): Promise<APIToken> {
+    if(!await isToken(token)) return null;
+    const client = await getClient();
+    return await client.db("economybot").collection<APIToken>("api_tokens").findOne({token:token});
+}
+
+export async function newToken(guild: Snowflake, issuer: Snowflake, name: string): Promise<APIToken> {
+    let token = crypto.randomBytes(35).toString("hex");
+    if(await isToken(token)) return newToken(guild, issuer, name);
+    
+    const client = await getClient();
+
+    let r: APIToken = {token: token, guild: guild, issuer: issuer, name: name};
+    client.db("economybot").collection<APIToken>("api_tokens").insertOne(r);
+    return r;
+}
+
+export async function listTokens(guild: Snowflake): Promise<APIToken[]> {
+    const client = await getClient();
+
+    let result = await client.db("economybot").collection<APIToken>("api_tokens").find({guild: guild});
+    let b: APIToken[] = [];
+    while(await result.hasNext()) {
+        b.push(await result.next());
+    }
+    return b;
+}
+
+export async function removeToken(guild: Snowflake, name: string): Promise<boolean> {
+    const client = await getClient();
+
+    let result = await client.db("economybot").collection<APIToken>("api_tokens").deleteMany({guild:guild,name:name});
+
+    return result.deletedCount > 0;
+}
+
+export async function timeOfLastMessage(guild: Snowflake, user: Snowflake): Promise<MessageDate> {
+    const client = await getClient();
+
+    let t = await client.db("economybot").collection<MessageDate>("message_dates").findOne({guild: guild, user: user});
+    if(t == null) {
+        t = new MessageDate(user, guild);
+        t.save();
+    }
+    t.save = async () => {
+        const client = await getClient();
+
+        client.db("economybot").collection("message_dates").replaceOne({user:user,guild:guild}, this, {upsert: true}).catch(console.error);
+    }
+    return t;
+}
+
+export class MessageDate {
+    readonly user: Snowflake;
+    readonly guild: Snowflake;
+
+    milliseconds: number;
+
+    constructor(user: Snowflake, guild: Snowflake) {
+        this.user = user;
+        this.guild = guild;
+        this.milliseconds = Date.now();
+    }
+
+    async save() {
+        const client = await getClient();
+
+        client.db("economybot").collection("message_dates").replaceOne({user:this.user,guild:this.guild}, this, {upsert: true}).catch(console.error);
+    }
+}
+
+export interface APIToken {
+    readonly token: string;
+    readonly guild: Snowflake;
+    readonly issuer: Snowflake;
+    readonly name: string;
+}
+
 export class UserBalance {
     readonly userID: Snowflake;
     readonly guildID: Snowflake;
@@ -115,6 +201,9 @@ export class GuildSettings {
         const client = await getClient();
 
         client.db("economybot").collection("guildSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
+        
+        await cache.set("guildSettings." + this.id, JSON.stringify(this));
+        cache.expire("guildSettings." + this.id, 30);
     }
 
     static fromJSON(json: string): GuildSettings {
@@ -146,6 +235,9 @@ export class EventSettings {
         const client = await getClient();
         
         client.db("economybot").collection("eventSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
+
+        await cache.set("eventSettings." + this.id, JSON.stringify(this));
+        cache.expire("eventSettings." + this.id, 30);
     }
 
     static fromJSON(json: string): EventSettings {
