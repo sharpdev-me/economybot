@@ -10,7 +10,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     let amount: number = 10;
 
     if(args.length > 0) {
-        amount = Number(args[0]);
+        amount = Math.min(Number(args[0]), 30);
         if(isNaN(amount)) {
             return message.channel.send("Amount must be a number!").catch(console.error);
         }
