@@ -29,3 +29,4 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 }
 
 export const name = "addmanager";
+export const aliases = ["add_manager"];

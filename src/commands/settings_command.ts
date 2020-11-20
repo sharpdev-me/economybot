@@ -3,6 +3,7 @@ import { getEventSettings, GuildSettings } from "../database";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
+        // For future: allow users to change whether or not others can view their balances
         return message.channel.send("This command can only be run in a server!").catch(console.error);
     }
     if(settings.managers.findIndex((u) => {return u === message.author.id}) === -1 && message.author.id !== message.guild.ownerID) {
