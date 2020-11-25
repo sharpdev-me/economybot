@@ -1,5 +1,9 @@
 import * as Discord from "discord.js";
 import * as database from "../database";
+import * as cache from "../cache";
+
+cache.exists("a");
+database.getClient();
 
 export async function run(args: string[], message: Discord.Message, settings?: database.GuildSettings) {
     let startDate = Date.now();

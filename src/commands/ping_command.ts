@@ -5,7 +5,9 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     let current = new Date();
     message.channel.send("Pong!").catch(console.error).then((message: Message) => {
         let newDate = new Date();
-        message.edit("Pong! `" + (newDate.getMilliseconds() - current.getMilliseconds()) + "ms`").catch(console.error);
+        let time = newDate.getMilliseconds() - current.getMilliseconds();
+        if(time <= 0) return;
+        message.edit("Pong! `" + time + "ms`").catch(console.error);
     });
 }
 
