@@ -11,6 +11,8 @@ const webAPI = express();
 
 const isProduction = process.env.ECONOMY_ENV == "production";
 
+console.log(isProduction);
+
 webAPI.use(bodyParser.json());
 webAPI.use(bodyParser.urlencoded({extended:false}));
 
