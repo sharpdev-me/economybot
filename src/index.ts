@@ -9,6 +9,8 @@ const dClient = new Discord.Client();
 
 const webAPI = express();
 
+const isProduction = process.env.ECONOMY_ENV == "production";
+
 webAPI.use(bodyParser.json());
 webAPI.use(bodyParser.urlencoded({extended:false}));
 

@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 
 import { Snowflake } from "discord.js";
 
@@ -6,7 +6,11 @@ import * as crypto from "crypto";
 
 import * as cache from "./cache";
 
-const url = `mongodb://10.0.0.194:27017/`
+const isProduction = process.env.ECONOMY_ENV == "production";
+
+const defaultPrefix = isProduction ? "$" : "$$";
+
+const url = process.env.ECONOMY_MONGO_URL
 
 let client: MongoClient;
 
@@ -15,6 +19,10 @@ export async function getClient(): Promise<MongoClient> {
         client = await new MongoClient(url, {useNewUrlParser: true, useUnifiedTopology: true, auth: {user: "economy", password: process.env.ECONOMY_MONGO}, authSource: "economybot"}).connect();
     }
     return client;
+}
+
+export async function getDatabase(): Promise<Db> {
+    return (await getClient()).db(isProduction ? "economybot" : "economytest");
 }
 
 export async function close(): Promise<void> {
@@ -26,11 +34,11 @@ export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
         cache.expire("guildSettings." + id, 30);
         return GuildSettings.fromJSON(await cache.get("guildSettings." + id));
     }
-    const client = await getClient();
-    const settings: GuildSettings | void = await client.db("economybot").collection<GuildSettings>("guildSettings").findOne({id:id});
+    const database = await getDatabase();
+    const settings: GuildSettings | void = await database.collection<GuildSettings>("guildSettings").findOne({id:id});
     let s: GuildSettings;
     if(!settings) {
-        s = new GuildSettings(id, "$", 100, "coins", []);
+        s = new GuildSettings(id, defaultPrefix, 100, "coins", []);
     } else {
         s = new GuildSettings(settings.id, settings.prefix, settings.defaultBalance, settings.currency, settings.managers);
     }
@@ -39,9 +47,9 @@ export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
 }
 
 export async function getBalance(userID: Snowflake, guildID: Snowflake): Promise<UserBalance> {
-    const client = await getClient();
+    const database = await getDatabase();
     
-    const balance: UserBalance | void = await client.db("economybot").collection("balances").findOne({userID: userID, guildID: guildID});
+    const balance: UserBalance | void = await database.collection("balances").findOne({userID: userID, guildID: guildID});
     if(!balance) {
         const settings = await getGuildSettings(guildID);
         return new UserBalance(settings.defaultBalance, userID, guildID);
@@ -50,9 +58,9 @@ export async function getBalance(userID: Snowflake, guildID: Snowflake): Promise
 }
 
 export async function getBalances(guildID: Snowflake): Promise<UserBalance[]> {
-    const client = await getClient();
+    const database = await getDatabase();
 
-    const balances = await client.db("economybot").collection<UserBalance>("balances").find({guildID: guildID});
+    const balances = await database.collection<UserBalance>("balances").find({guildID: guildID});
     return (await balances.toArray()).map(ub => new UserBalance(ub.balance, ub.userID, ub.guildID)).sort((a,b) => b.balance - a.balance);
     
 }
@@ -62,9 +70,9 @@ export async function getEventSettings(guildID: Snowflake): Promise<EventSetting
         cache.expire("eventSettings." + guildID, 30);
         return EventSettings.fromJSON(await cache.get("eventSettings." + guildID));
     }
-    const client = await getClient();
+    const database = await getDatabase();
 
-    const eventSettings: EventSettings | null = await client.db("economybot").collection<EventSettings>("eventSettings").findOne({id: guildID});
+    const eventSettings: EventSettings | null = await database.collection<EventSettings>("eventSettings").findOne({id: guildID});
     let s: EventSettings;
     if(!eventSettings) {
         s = new EventSettings(guildID, false, 0, 0, false, 0);
@@ -76,22 +84,22 @@ export async function getEventSettings(guildID: Snowflake): Promise<EventSetting
 }
 
 export async function isToken(token: string): Promise<boolean> {
-    const client = await getClient();
+    const database = await getDatabase();
 
-    return (await client.db("economybot").collection("api_tokens").findOne({token:token}) != null);
+    return (await database.collection("api_tokens").findOne({token:token}) != null);
 }
 
 export async function getToken(token: string): Promise<APIToken> {
     if(!await isToken(token)) return null;
-    const client = await getClient();
-    return await client.db("economybot").collection<APIToken>("api_tokens").findOne({token:token});
+    const database = await getDatabase();
+    return await database.collection<APIToken>("api_tokens").findOne({token:token});
 }
 
 export async function newToken(guild: Snowflake, issuer: Snowflake, name: string): Promise<APIToken> {
     let token = crypto.randomBytes(35).toString("hex");
     if(await isToken(token)) return newToken(guild, issuer, name);
     
-    const client = await getClient();
+    const database = await getDatabase();
 
     let r: APIToken = {token: token, guild: guild, issuer: issuer, name: name};
     client.db("economybot").collection<APIToken>("api_tokens").insertOne(r);
@@ -99,9 +107,9 @@ export async function newToken(guild: Snowflake, issuer: Snowflake, name: string
 }
 
 export async function listTokens(guild: Snowflake): Promise<APIToken[]> {
-    const client = await getClient();
+    const database = await getDatabase();
 
-    let result = await client.db("economybot").collection<APIToken>("api_tokens").find({guild: guild});
+    let result = await database.collection<APIToken>("api_tokens").find({guild: guild});
     let b: APIToken[] = [];
     while(await result.hasNext()) {
         b.push(await result.next());
@@ -110,25 +118,25 @@ export async function listTokens(guild: Snowflake): Promise<APIToken[]> {
 }
 
 export async function removeToken(guild: Snowflake, name: string): Promise<boolean> {
-    const client = await getClient();
+    const database = await getDatabase();
 
-    let result = await client.db("economybot").collection<APIToken>("api_tokens").deleteMany({guild:guild,name:name});
+    let result = await database.collection<APIToken>("api_tokens").deleteMany({guild:guild,name:name});
 
     return result.deletedCount > 0;
 }
 
 export async function timeOfLastMessage(guild: Snowflake, user: Snowflake): Promise<MessageDate> {
-    const client = await getClient();
+    const database = await getDatabase();
 
-    let t = await client.db("economybot").collection<MessageDate>("message_dates").findOne({guild: guild, user: user});
+    let t = await database.collection<MessageDate>("message_dates").findOne({guild: guild, user: user});
     if(t == null) {
         t = new MessageDate(user, guild);
         t.save();
     }
     t.save = async () => {
-        const client = await getClient();
+        const database = await getDatabase();
 
-        client.db("economybot").collection("message_dates").replaceOne({user:user,guild:guild}, this, {upsert: true}).catch(console.error);
+        database.collection("message_dates").replaceOne({user:user,guild:guild}, this, {upsert: true}).catch(console.error);
     }
     return t;
 }
@@ -146,9 +154,9 @@ export class MessageDate {
     }
 
     async save() {
-        const client = await getClient();
+        const database = await getDatabase();
 
-        client.db("economybot").collection("message_dates").replaceOne({user:this.user,guild:this.guild}, this, {upsert: true}).catch(console.error);
+        database.collection("message_dates").replaceOne({user:this.user,guild:this.guild}, this, {upsert: true}).catch(console.error);
     }
 }
 
@@ -172,9 +180,8 @@ export class UserBalance {
     }
 
     async save() {
-        const client = await getClient();
-
-        client.db("economybot").collection("balances").replaceOne({userID: this.userID, guildID: this.guildID}, this, {upsert: true}).catch(console.error);
+        const database = await getDatabase();
+        database.collection("balances").replaceOne({userID: this.userID, guildID: this.guildID}, this, {upsert: true}).catch(console.error);
     }
 }
 
@@ -198,9 +205,9 @@ export class GuildSettings {
     }
 
     async save() {
-        const client = await getClient();
+        const database = await getDatabase();
 
-        client.db("economybot").collection("guildSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
+        database.collection("guildSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
         
         await cache.set("guildSettings." + this.id, JSON.stringify(this));
         cache.expire("guildSettings." + this.id, 30);
@@ -232,9 +239,9 @@ export class EventSettings {
     }
 
     async save() {
-        const client = await getClient();
+        const database = await getDatabase();
         
-        client.db("economybot").collection("eventSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
+        database.collection("eventSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
 
         await cache.set("eventSettings." + this.id, JSON.stringify(this));
         cache.expire("eventSettings." + this.id, 30);

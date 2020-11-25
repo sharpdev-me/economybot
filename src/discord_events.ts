@@ -5,6 +5,10 @@ import * as path from "path";
 
 import * as database from "./database";
 
+const isProduction = process.env.ECONOMY_ENV == "production";
+
+const defaultPrefix = isProduction ? "$" : "$$";
+
 export const commands: any = {};
 
 export async function register_events(client: Client) {
@@ -27,9 +31,9 @@ export async function register_events(client: Client) {
                 if(message.author.bot) return;
                 if(message.channel instanceof NewsChannel) return;
                 if(message.channel instanceof DMChannel) {
-                    if(!message.content.startsWith("$")) return;
+                    if(!message.content.startsWith(defaultPrefix)) return;
                     // Handle command sent to the bot via DMs
-                    const split = splitMessage(message, "$");
+                    const split = splitMessage(message, defaultPrefix);
                     if(split[1].startsWith("sd") && message.author.id != "532368416380551168") return;
                     const cmd = commands[split[1]];
                     if(!cmd) return;

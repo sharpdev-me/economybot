@@ -6,7 +6,7 @@
 import * as redis from "redis";
 import { promisify } from "util";
 
-const client = redis.createClient({host: "10.0.0.194", password: process.env.ECONOMY_REDIS});
+const client = redis.createClient({host: process.env.ECONOMY_REDIS_HOST, password: process.env.ECONOMY_REDIS});
 
 export const get: (key: string) => Promise<string> = promisify(client.get).bind(client);
 export const set: (key: string, val: string) => Promise<string> = promisify(client.set).bind(client);
