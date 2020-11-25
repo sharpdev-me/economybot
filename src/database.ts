@@ -30,7 +30,7 @@ export async function close(): Promise<void> {
 }
 
 export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
-    if(await cache.exists("guildSettings." + id) === 1) {
+    if(isProduction && await cache.exists("guildSettings." + id) === 1) {
         cache.expire("guildSettings." + id, 30);
         return GuildSettings.fromJSON(await cache.get("guildSettings." + id));
     }
@@ -42,7 +42,7 @@ export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
     } else {
         s = new GuildSettings(settings.id, settings.prefix, settings.defaultBalance, settings.currency, settings.managers);
     }
-    cache.set("guildSettings." + id, JSON.stringify(s)).catch(console.error).then(() => cache.expire("guildSettings." + id, 30));
+    if(isProduction) cache.set("guildSettings." + id, JSON.stringify(s)).catch(console.error).then(() => cache.expire("guildSettings." + id, 30));
     return s;
 }
 
@@ -66,7 +66,7 @@ export async function getBalances(guildID: Snowflake): Promise<UserBalance[]> {
 }
 
 export async function getEventSettings(guildID: Snowflake): Promise<EventSettings> {
-    if(await cache.exists("eventSettings." + guildID) === 1) {
+    if(isProduction && await cache.exists("eventSettings." + guildID) === 1) {
         cache.expire("eventSettings." + guildID, 30);
         return EventSettings.fromJSON(await cache.get("eventSettings." + guildID));
     }
@@ -79,7 +79,7 @@ export async function getEventSettings(guildID: Snowflake): Promise<EventSetting
     } else {
         s = new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.watchInvites, eventSettings.inviteReward);
     }
-    cache.set("eventSettings." + guildID, JSON.stringify(s)).catch(console.error).then(() => cache.expire("eventSettings." + guildID, 30));
+    if(isProduction) cache.set("eventSettings." + guildID, JSON.stringify(s)).catch(console.error).then(() => cache.expire("eventSettings." + guildID, 30));
     return s;
 }
 
@@ -209,8 +209,8 @@ export class GuildSettings {
 
         database.collection("guildSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
         
-        await cache.set("guildSettings." + this.id, JSON.stringify(this));
-        cache.expire("guildSettings." + this.id, 30);
+        if(isProduction) await cache.set("guildSettings." + this.id, JSON.stringify(this));
+        if(isProduction) cache.expire("guildSettings." + this.id, 30);
     }
 
     static fromJSON(json: string): GuildSettings {
@@ -243,8 +243,8 @@ export class EventSettings {
         
         database.collection("eventSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
 
-        await cache.set("eventSettings." + this.id, JSON.stringify(this));
-        cache.expire("eventSettings." + this.id, 30);
+        if(isProduction) await cache.set("eventSettings." + this.id, JSON.stringify(this));
+        if(isProduction) cache.expire("eventSettings." + this.id, 30);
     }
 
     static fromJSON(json: string): EventSettings {
