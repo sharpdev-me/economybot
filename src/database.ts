@@ -102,7 +102,7 @@ export async function newToken(guild: Snowflake, issuer: Snowflake, name: string
     const database = await getDatabase();
 
     let r: APIToken = {token: token, guild: guild, issuer: issuer, name: name};
-    client.db("economybot").collection<APIToken>("api_tokens").insertOne(r);
+    database.collection<APIToken>("api_tokens").insertOne(r);
     return r;
 }
 
