@@ -3,30 +3,41 @@ import {register_events} from "./discord_events";
 
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import { getAllReferrals, getBalance, getBalances, getDatabase, getGuildSettings, getToken, isToken, Referral, deleteReferral } from "./database";
+import { getAllReferrals, getBalance, getBalances, getGuildSettings, getToken, isToken, Referral, deleteReferral } from "./database";
 
 const dClient = new Discord.Client();
 
-const webAPI = express();
+const webApp = express();
 
 const isProduction = process.env.ECONOMY_ENV == "production";
 
-const botVersion = "v1.0.0";
+const botVersion = "1.0.0";
 
-console.log(isProduction);
+let available = false;
 
-webAPI.use(bodyParser.json());
-webAPI.use(bodyParser.urlencoded({extended:false}));
+webApp.use(bodyParser.json());
+webApp.use(bodyParser.urlencoded({extended:false}));
+
+const webAPI = express.Router();
+
+webAPI.get("/available", async (req, res) => {
+    res.status(200).send({available:available});
+})
 
 webAPI.get("/stats", async (req, res) => {
+    if(!available) return res.status(409).send({error:"bot not available"});
     let response = {
         guild_count:dClient.guilds.cache.size,
         user_count:dClient.users.cache.size,
+        version: botVersion,
+        uptime: dClient.uptime,
+        url: "https://economybot.xyz/"
     };
     res.status(200).send(response);
 });
 
 webAPI.get("/guilds/:guildID", async (req, res) => {
+    if(!available) return res.status(409).send({error:"bot not available"});
     const guildID = req.params.guildID;
     if(!req.query.token) return res.status(400).send({error:"malformed request",message:"No token has been provided"});
     const token = req.query.token.toString();
@@ -59,6 +70,7 @@ webAPI.get("/guilds/:guildID", async (req, res) => {
 });
 
 webAPI.get("/guilds/:guildID/balances", async (req, res) => {
+    if(!available) return res.status(409).send({error:"bot not available"});
     const guildID = req.params.guildID;
     if(!req.query.token) return res.status(400).send({error:"malformed request",message:"No token has been provided"});
     const token = req.query.token.toString();
@@ -80,6 +92,7 @@ webAPI.get("/guilds/:guildID/balances", async (req, res) => {
 });
 
 webAPI.get("/guilds/:guildID/balances/:userID", async (req, res) => {
+    if(!available) return res.status(409).send({error:"bot not available"});
     const guildID = req.params.guildID;
     const userID = req.params.userID;
     if(!req.query.token) return res.status(400).send({error:"malformed request",message:"No token has been provided"});
@@ -102,6 +115,7 @@ webAPI.get("/guilds/:guildID/balances/:userID", async (req, res) => {
 });
 
 webAPI.put("/guilds/:guildID/balances/:userID", async (req, res) => {
+    if(!available) return res.status(409).send({error:"bot not available"});
     const guildID = req.params.guildID;
     const userID = req.params.userID;
     if(!req.query.token) return res.status(400).send({error:"malformed request",message:"No token has been provided"});
@@ -128,10 +142,12 @@ webAPI.put("/guilds/:guildID/balances/:userID", async (req, res) => {
     }
 });
 
+webApp.use("/api", webAPI);
+
 dClient.on("ready", async () => {
     console.log("Bot Online");
     console.log(`Guilds: ${dClient.guilds.cache.size}\nUsers: ${dClient.users.cache.size}`);
-    dClient.user.setPresence({activity: {type: "LISTENING", name: "$invite | " + botVersion}, status: "online"});
+    dClient.user.setPresence({activity: {type: "LISTENING", name: "$invite | v" + botVersion}, status: "online"});
 
     dClient.guilds.cache.forEach(async guild => {
         let referrals = await getAllReferrals(guild.id);
@@ -149,7 +165,9 @@ dClient.on("ready", async () => {
                 new Referral(invite.inviter.id, invite.guild.id, invite.code, invite.url, invite.uses).save();
             }
         });        
-    })
+    });
+    available = true;
 });
 
-register_events(dClient).catch(console.error).then(() => dClient.login(process.env.ECONOMY_TOKEN).then(() => webAPI.listen(3000)));
+webApp.listen(process.env.ECONOMY_PORT || 3000);
+register_events(dClient).catch(console.error).then(() => dClient.login(process.env.ECONOMY_TOKEN));
