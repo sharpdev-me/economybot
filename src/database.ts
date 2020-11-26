@@ -75,9 +75,9 @@ export async function getEventSettings(guildID: Snowflake): Promise<EventSetting
     const eventSettings: EventSettings | null = await database.collection<EventSettings>("eventSettings").findOne({id: guildID});
     let s: EventSettings;
     if(!eventSettings) {
-        s = new EventSettings(guildID, false, 0, 0, false, 0);
+        s = new EventSettings(guildID, false, 0, 0, false, 0, 0);
     } else {
-        s = new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.watchInvites, eventSettings.inviteReward);
+        s = new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.referrals, eventSettings.referrerAmount, eventSettings.referredAmount);
     }
     if(isProduction) cache.set("eventSettings." + guildID, JSON.stringify(s)).catch(console.error).then(() => cache.expire("eventSettings." + guildID, 30));
     return s;
@@ -139,6 +139,73 @@ export async function timeOfLastMessage(guild: Snowflake, user: Snowflake): Prom
         database.collection("message_dates").replaceOne({user:user,guild:guild}, this, {upsert: true}).catch(console.error);
     }
     return t;
+}
+
+export async function getReferral(code: string): Promise<Referral | null> {
+    const database = await getDatabase();
+
+    return Referral.fromDb(await database.collection<Referral>("referrals").findOne({code:code}));
+}
+
+export async function getReferrals(issuer: Snowflake, guild: Snowflake): Promise<Referral[]> {
+    const database = await getDatabase();
+
+    let returnResults: Referral[] = [];
+
+    let results = database.collection<Referral>("referrals").find({issuer: issuer, guild: guild});
+
+    while(await results.hasNext()) {
+        returnResults.push(Referral.fromDb(await results.next()));
+    }
+
+    return returnResults;
+}
+
+export async function getAllReferrals(guild: Snowflake): Promise<Referral[]> {
+    const database = await getDatabase();
+
+    let returnResults: Referral[] = [];
+
+    let results = database.collection<Referral>("referrals").find({guild:guild});
+
+    while(await results.hasNext()) {
+        returnResults.push(Referral.fromDb(await results.next()));
+    }
+
+    return returnResults;
+}
+
+export async function deleteReferral(code: string) {
+    const database = await getDatabase();
+
+    database.collection<Referral>("referrals").deleteOne({code:code});
+}
+
+export class Referral {
+    readonly issuer: Snowflake;
+    readonly guild: Snowflake;
+    readonly code: string;
+    readonly url: string;
+
+    uses: number;
+
+    constructor(issuer: Snowflake, guild: Snowflake, code: string, url: string, uses: number) {
+        this.issuer = issuer;
+        this.guild = guild;
+        this.code = code;
+        this.url = url;
+        this.uses = uses;
+    }
+
+    async save() {
+        const database = await getDatabase();
+
+        database.collection("referrals").replaceOne({code:this.code}, this, {upsert:true}).catch(console.error);
+    }
+
+    static fromDb(referral: Referral): Referral {
+        return new Referral(referral.issuer, referral.guild, referral.code, referral.url, referral.uses);
+    }
 }
 
 export class MessageDate {
@@ -226,16 +293,18 @@ export class EventSettings {
     messageReward: number;
     messageCooldown: number;
 
-    watchInvites: boolean;
-    inviteReward: number;
+    referrals: boolean;
+    referrerAmount: number;
+    referredAmount: number;
 
-    constructor(id: Snowflake, watchMessages: boolean, messageReward: number, messageCooldown: number, watchInvites: boolean, inviteReward: number) {
+    constructor(id: Snowflake, watchMessages: boolean, messageReward: number, messageCooldown: number, referrals: boolean, referrerAmount: number, referredAmount: number) {
         this.id = id;
         this.watchMessages = watchMessages;
         this.messageReward = messageReward;
         this.messageCooldown = messageCooldown;
-        this.watchInvites = watchInvites;
-        this.inviteReward = inviteReward;
+        this.referrals = referrals;
+        this.referrerAmount = referrerAmount;
+        this.referredAmount = referredAmount
     }
 
     async save() {
@@ -249,6 +318,6 @@ export class EventSettings {
 
     static fromJSON(json: string): EventSettings {
         const obj = JSON.parse(json);
-        return new EventSettings(obj.id, obj.watchMessages, obj.messageReward, obj.messageCooldown, obj.watchInvites, obj.inviteReward);
+        return new EventSettings(obj.id, obj.watchMessages, obj.messageReward, obj.messageCooldown, obj.referrals, obj.referrerAmount, obj.refferedAmount);
     }
 }

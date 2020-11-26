@@ -3,7 +3,7 @@ import {register_events} from "./discord_events";
 
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import { getBalance, getBalances, getGuildSettings, getToken, isToken } from "./database";
+import { getAllReferrals, getBalance, getBalances, getDatabase, getGuildSettings, getToken, isToken, Referral, deleteReferral } from "./database";
 
 const dClient = new Discord.Client();
 
@@ -129,6 +129,24 @@ webAPI.put("/guilds/:guildID/balances/:userID", async (req, res) => {
 dClient.on("ready", async () => {
     console.log("Bot Online");
     console.log(`Guilds: ${dClient.guilds.cache.size}\nUsers: ${dClient.users.cache.size}`);
+
+    dClient.guilds.cache.forEach(async guild => {
+        let referrals = await getAllReferrals(guild.id);
+        let referralMap = referrals.map(referral => referral.code);
+        let guildInvites = await guild.fetchInvites();
+        let invitesMap = guildInvites.map(invite => invite.code);
+        referralMap.forEach((referralCode) => {
+            if(!invitesMap.includes(referralCode)) {
+                deleteReferral(referralCode);
+            }
+        });
+
+        guildInvites.forEach((invite) => {
+            if(!referralMap.includes(invite.code)) {
+                new Referral(invite.inviter.id, invite.guild.id, invite.code, invite.url, invite.uses).save();
+            }
+        });        
+    })
 });
 
 register_events(dClient).catch(console.error).then(() => dClient.login(process.env.ECONOMY_TOKEN).then(() => webAPI.listen(3000)));

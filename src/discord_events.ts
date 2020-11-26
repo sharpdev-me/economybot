@@ -1,4 +1,4 @@
-import {Client, Message, DMChannel, NewsChannel, TextChannel} from "discord.js";
+import {Client, Message, DMChannel, NewsChannel, TextChannel, Snowflake} from "discord.js";
 
 import { readdir } from "fs";
 import * as path from "path";
@@ -60,6 +60,63 @@ export async function register_events(client: Client) {
                     if(!cmd) return;
                     cmd.run(split[0], message, guildSettings);
                 }
+            });
+            client.on("inviteCreate", async (invite) => {
+                let referrals = await database.getAllReferrals(invite.guild.id);
+                let referralMap = referrals.map(referral => referral.code);
+                let guildInvites = await invite.guild.fetchInvites();
+                let invitesMap = guildInvites.map(invite => invite.code);
+                referralMap.forEach((referralCode) => {
+                    if(!invitesMap.includes(referralCode)) {
+                        database.deleteReferral(referralCode);
+                    }
+                });
+
+                guildInvites.forEach((invite) => {
+                    if(!referralMap.includes(invite.code)) {
+                        new database.Referral(invite.inviter.id, invite.guild.id, invite.code, invite.url, invite.uses).save();
+                    }
+                });
+
+                new database.Referral(invite.inviter.id, invite.guild.id, invite.code, invite.url, 0).save();
+            });
+            client.on("inviteDelete", async (invite) => {
+                let referrals = await database.getAllReferrals(invite.guild.id);
+                let referralMap = referrals.map(referral => referral.code);
+                let guildInvites = await invite.guild.fetchInvites();
+                let invitesMap = guildInvites.map(invite => invite.code);
+                referralMap.forEach((referralCode) => {
+                    if(!invitesMap.includes(referralCode)) {
+                        database.deleteReferral(referralCode);
+                    }
+                });
+
+                guildInvites.forEach((invite) => {
+                    if(!referralMap.includes(invite.code)) {
+                        new database.Referral(invite.inviter.id, invite.guild.id, invite.code, invite.url, invite.uses).save();
+                    }
+                });
+                if(database.getReferral(invite.code) != null) database.deleteReferral(invite.code);
+            });
+            client.on("guildMemberAdd", async (member) => {
+                const eventSettings = await database.getEventSettings(member.guild.id);
+                if(!eventSettings.referrals) return;
+                let referrals = (await database.getAllReferrals(member.guild.id));
+                let invites = await member.guild.fetchInvites();
+
+                invites.forEach(async (invite) => {
+                    let referral = referrals.find(referral => referral.code == invite.code);
+                    if(invite.uses >= referral.uses + 1) {
+                        referral.uses = invite.uses;
+                        referral.save();
+                        let invitedBalance = await database.getBalance(member.id, member.guild.id);
+                        let inviterBalance = await database.getBalance(referral.issuer, member.guild.id);
+                        inviterBalance.balance += eventSettings.referrerAmount;
+                        invitedBalance.balance += eventSettings.referredAmount;
+                        invitedBalance.save();
+                        inviterBalance.save();
+                    }
+                })
             });
             resolve();
         });
