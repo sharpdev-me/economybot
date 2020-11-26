@@ -11,6 +11,8 @@ const webAPI = express();
 
 const isProduction = process.env.ECONOMY_ENV == "production";
 
+const botVersion = "v1.0.0";
+
 console.log(isProduction);
 
 webAPI.use(bodyParser.json());
@@ -129,6 +131,7 @@ webAPI.put("/guilds/:guildID/balances/:userID", async (req, res) => {
 dClient.on("ready", async () => {
     console.log("Bot Online");
     console.log(`Guilds: ${dClient.guilds.cache.size}\nUsers: ${dClient.users.cache.size}`);
+    dClient.user.setPresence({activity: {type: "LISTENING", name: "$invite | " + botVersion}, status: "online"});
 
     dClient.guilds.cache.forEach(async guild => {
         let referrals = await getAllReferrals(guild.id);
