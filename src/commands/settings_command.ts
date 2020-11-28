@@ -43,7 +43,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
             break;
         case "defaultBalance":
             let n = Number(args[1]);
-            if(isNaN(n) || n == Infinity) {
+            if(isNaN(n) || n == Infinity || n == -Infinity) {
                 return message.channel.send("defaultBalance must be a number!").catch(console.error);
             }
             settings.defaultBalance = n;
@@ -65,14 +65,14 @@ export async function run(args: string[], message: Message, settings?: GuildSett
             break;
         case "messageReward":
             let n1 = Number(args[1]);
-            if(isNaN(n1) || n1 == Infinity) {
+            if(isNaN(n1) || n1 == Infinity || n == -Infinity) {
                 return message.channel.send("messageReward must be a number!").catch(console.error);
             }
             eventSettings.messageReward = n1;
             break;
         case "messageCooldown":
             let n2 = Number(args[1]);
-            if(isNaN(n2) || n2 == Infinity) {
+            if(isNaN(n2) || n2 == Infinity || n == -Infinity) {
                 return message.channel.send("messageCooldown must be a number!").catch(console.error);
             }
             eventSettings.messageCooldown = n2;
@@ -91,14 +91,14 @@ export async function run(args: string[], message: Message, settings?: GuildSett
             break;
         case "referrerAmount":
             let n3 = Number(args[1]);
-            if(isNaN(n3) || n3 == Infinity) {
+            if(isNaN(n3) || n3 == Infinity || n == -Infinity) {
                 return message.channel.send("referrerAmount must be a number!").catch(console.error);
             }
             eventSettings.referrerAmount = n3;
             break;
         case "referredAmount":
             let n4 = Number(args[1]);
-            if(isNaN(n4) || n4 == Infinity) {
+            if(isNaN(n4) || n4 == Infinity || n == -Infinity) {
                 return message.channel.send("referredAmount must be a number!").catch(console.error);
             }
             eventSettings.referredAmount = n4;

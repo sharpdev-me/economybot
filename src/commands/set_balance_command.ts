@@ -12,7 +12,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
         return message.channel.send("Proper usage is \`set_balance <balance> [user1, user2...]`").catch(console.error);
     }
     const balance: number = Number(args[0]);
-    if(isNaN(balance) || balance == Infinity) {
+    if(isNaN(balance) || balance == Infinity || balance == -Infinity) {
         return message.channel.send("Balance must be a number!").catch(console.error);
     }
     
