@@ -3,7 +3,7 @@ node_js:
   - 12
 
 notifications:
-  webhooks: http://economybot.xyz/hooks/deploy
+  webhooks: https://economybot.xyz/hooks/deploy
 
 before_install:
   - npm i -g typescript
