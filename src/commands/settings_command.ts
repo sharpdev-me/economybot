@@ -26,7 +26,6 @@ export async function run(args: string[], message: Message, settings?: GuildSett
         value += `\`messageCooldown\`: ${eventSettings.messageCooldown} - The time in milliseconds between messages to get a reward\n`;
         value += `\`referrals\`: ${eventSettings.referrals} - Enable getting rewards for referrals\n`;
         value += `\`referrerAmount\`: ${eventSettings.referrerAmount} - The amount to give the referrer when their link is used\n`;
-        value += `\`referredAmount\`: ${eventSettings.referredAmount} - The amount to give the user who was referred by a link\n`;
         
 
         embed.setDescription(value);
@@ -96,15 +95,8 @@ export async function run(args: string[], message: Message, settings?: GuildSett
             }
             eventSettings.referrerAmount = n3;
             break;
-        case "referredAmount":
-            let n4 = Number(args[1]);
-            if(isNaN(n4) || n4 == Infinity || n == -Infinity) {
-                return message.channel.send("referredAmount must be a number!").catch(console.error);
-            }
-            eventSettings.referredAmount = n4;
-            break;
         default:
-            message.channel.send("That setting does not exist. Available settings are `prefix, defaultBalance, currency, watchMessages, messageReward, messageCooldown, referrals, referrerAmount, referredAmount`").catch(console.error);
+            message.channel.send("That setting does not exist. Available settings are `prefix, defaultBalance, currency, watchMessages, messageReward, messageCooldown, referrals, referrerAmount`").catch(console.error);
             return;
 
     }

@@ -75,9 +75,9 @@ export async function getEventSettings(guildID: Snowflake): Promise<EventSetting
     const eventSettings: EventSettings | null = await database.collection<EventSettings>("eventSettings").findOne({id: guildID});
     let s: EventSettings;
     if(!eventSettings) {
-        s = new EventSettings(guildID, false, 0, 0, false, 0, 0);
+        s = new EventSettings(guildID, false, 0, 0, false, 0);
     } else {
-        s = new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.referrals, eventSettings.referrerAmount, eventSettings.referredAmount);
+        s = new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.referrals, eventSettings.referrerAmount);
     }
     if(isProduction) cache.set("eventSettings." + guildID, JSON.stringify(s)).catch(console.error).then(() => cache.expire("eventSettings." + guildID, 30));
     return s;
@@ -295,16 +295,14 @@ export class EventSettings {
 
     referrals: boolean;
     referrerAmount: number;
-    referredAmount: number;
 
-    constructor(id: Snowflake, watchMessages: boolean, messageReward: number, messageCooldown: number, referrals: boolean, referrerAmount: number, referredAmount: number) {
+    constructor(id: Snowflake, watchMessages: boolean, messageReward: number, messageCooldown: number, referrals: boolean, referrerAmount: number) {
         this.id = id;
         this.watchMessages = watchMessages;
         this.messageReward = messageReward;
         this.messageCooldown = messageCooldown;
         this.referrals = referrals;
         this.referrerAmount = referrerAmount;
-        this.referredAmount = referredAmount
     }
 
     async save() {
@@ -318,6 +316,6 @@ export class EventSettings {
 
     static fromJSON(json: string): EventSettings {
         const obj = JSON.parse(json);
-        return new EventSettings(obj.id, obj.watchMessages, obj.messageReward, obj.messageCooldown, obj.referrals, obj.referrerAmount, obj.refferedAmount);
+        return new EventSettings(obj.id, obj.watchMessages, obj.messageReward, obj.messageCooldown, obj.referrals, obj.referrerAmount);
     }
 }

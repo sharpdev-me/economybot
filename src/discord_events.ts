@@ -109,11 +109,8 @@ export async function register_events(client: Client) {
                     if(invite.uses >= referral.uses + 1) {
                         referral.uses = invite.uses;
                         referral.save();
-                        let invitedBalance = await database.getBalance(member.id, member.guild.id);
                         let inviterBalance = await database.getBalance(referral.issuer, member.guild.id);
                         inviterBalance.balance += eventSettings.referrerAmount;
-                        invitedBalance.balance += eventSettings.referredAmount;
-                        invitedBalance.save();
                         inviterBalance.save();
                     }
                 })
