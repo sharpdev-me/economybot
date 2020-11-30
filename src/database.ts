@@ -181,6 +181,33 @@ export async function deleteReferral(code: string) {
     database.collection<Referral>("referrals").deleteOne({code:code});
 }
 
+export async function getRole(id: Snowflake) {
+    const database = await getDatabase();
+
+    return await database.collection<ManagedRole>("managedRoles").findOne({id:id});
+}
+
+export async function getRoles(guildID: Snowflake) {
+    const database = await getDatabase();
+
+    let results: ManagedRole[] = [];
+    let res = database.collection<ManagedRole>("managedRoles").find({guild:guildID});
+
+    while(await res.hasNext()) {
+        results.push(await res.next());
+    }
+
+    return results;
+}
+
+export async function addRole(role: ManagedRole) {
+    (await getDatabase()).collection("managedRoles").replaceOne({id:role.id}, role, {upsert: true});
+}
+
+export async function delRole(id: Snowflake) {
+    (await getDatabase()).collection("managedRoles").deleteOne({id:id});
+}
+
 export class Referral {
     readonly issuer: Snowflake;
     readonly guild: Snowflake;
@@ -318,4 +345,10 @@ export class EventSettings {
         const obj = JSON.parse(json);
         return new EventSettings(obj.id, obj.watchMessages, obj.messageReward, obj.messageCooldown, obj.referrals, obj.referrerAmount);
     }
+}
+
+export interface ManagedRole {
+    readonly id: Snowflake;
+    readonly guild: Snowflake;
+    readonly cost: number;
 }

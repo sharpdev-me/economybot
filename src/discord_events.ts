@@ -115,6 +115,11 @@ export async function register_events(client: Client) {
                     }
                 })
             });
+            client.on("roleDelete", async (role) => {
+                if(await database.getRole(role.id) != null) {
+                    database.delRole(role.id);
+                }
+            });
             resolve();
         });
     });
