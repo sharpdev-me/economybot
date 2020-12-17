@@ -2,6 +2,7 @@ import {Client, Message, DMChannel, NewsChannel, TextChannel, Snowflake} from "d
 
 import { readdir } from "fs";
 import * as path from "path";
+import { HelpCategories } from "./commands/help_command";
 
 import * as database from "./database";
 
@@ -9,7 +10,7 @@ const isProduction = process.env.ECONOMY_ENV == "production";
 
 const defaultPrefix = isProduction ? "$" : "$$";
 
-export const commands: any = {};
+let commands: {[key: string]: Command} = {};
 
 export async function register_events(client: Client) {
     return new Promise((reject, resolve) => {
@@ -30,6 +31,7 @@ export async function register_events(client: Client) {
             client.on("message", async (message: Message) => {
                 if(message.author.bot) return;
                 if(message.channel instanceof NewsChannel) return;
+                if(!message.guild.me.hasPermission("SEND_MESSAGES")) return;
                 if(message.channel instanceof DMChannel) {
                     if(!message.content.startsWith(defaultPrefix)) return;
                     // Handle command sent to the bot via DMs
@@ -129,4 +131,16 @@ function splitMessage(message: Message, prefix: string): [string[], string] {
     const content = message.content;
     const args = content.slice(prefix.length).trim().split(/ +/g);
     return [args, args.shift().toLowerCase()]
+}
+
+export function getCommands() {
+    return commands;
+}
+
+export interface Command {
+    readonly name: string;
+    readonly aliases?: string[];
+    readonly help?: string;
+    readonly category?: HelpCategories;
+    readonly run: (args: string[], message: Message, settings?: database.GuildSettings) => void;
 }
