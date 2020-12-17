@@ -1,6 +1,7 @@
 import { Collection, CollectorFilter, Message } from "discord.js";
 import { stringify } from "querystring";
 import { getEventSettings, GuildSettings } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) return message.channel.send("This command can only be run in a server").catch(console.error);
@@ -103,3 +104,5 @@ async function getMessage(message: Message) {
 }
 
 export const name = "setup";
+export const category = HelpCategories.ADMIN;
+export const help = "This command will invoke the setup wizard. It helps guide you through the configuration process.";

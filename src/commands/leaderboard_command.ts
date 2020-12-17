@@ -1,5 +1,6 @@
 import { Message, MessageEmbed } from "discord.js";
 import { GuildSettings, getBalances, getBalance } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -41,3 +42,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 
 export const name = "leaderboard";
 export const aliases = ["leader", "top", "lb"];
+export const category = HelpCategories.MONEY;
+export const help = "Views the users with the most money on the server";

@@ -1,7 +1,11 @@
 import { Message } from "discord.js";
 import { GuildSettings, delRole, getRole } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
+    if(!settings) {
+        return message.channel.send("This command can only be run in a server!").catch(console.error);
+    }
     if(settings.managers.findIndex((u) => {return u === message.author.id}) === -1 && message.author.id !== message.guild.ownerID) {
         return message.channel.send("You do not have permission to execute this command!").catch(console.error);
     }
@@ -28,3 +32,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 
 export const name = "del_role";
 export const aliases = ["dr", "delete_role"];
+export const category = HelpCategories.ADMIN;
+export const help = "Stop selling a role on your server";

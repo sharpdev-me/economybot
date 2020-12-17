@@ -1,5 +1,6 @@
 import { DMChannel, Message } from "discord.js";
 import { GuildSettings, newToken } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -27,3 +28,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 }
 
 export const name = "new_token";
+export const category = HelpCategories.ADMIN;
+export const help = "Creates a new API token for this server. If you want to know how to use this, go to https://economybot.xyz/docs/";

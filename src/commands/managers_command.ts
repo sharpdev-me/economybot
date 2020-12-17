@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import { GuildSettings } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -14,3 +15,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 }
 
 export const name = "managers";
+export const category = HelpCategories.ADMIN;
+export const help = "List all managers on this server";

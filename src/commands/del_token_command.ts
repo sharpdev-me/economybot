@@ -1,5 +1,6 @@
 import { DMChannel, Message } from "discord.js";
 import { GuildSettings, newToken, removeToken } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -20,3 +21,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 }
 
 export const name = "del_token";
+export const category = HelpCategories.ADMIN;
+export const help = "Remove an API token from your server";

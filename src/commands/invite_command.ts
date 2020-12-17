@@ -7,3 +7,4 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 
 export const name = "invite";
 export const aliases = ["inv", "addme"];
+export const help = "Get an invite link for EconomyBot";

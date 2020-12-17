@@ -1,7 +1,11 @@
 import { Message } from "discord.js";
 import { GuildSettings, getRole, getBalance } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
+    if(!settings) {
+        return message.channel.send("This command can only be run in a server!").catch(console.error);
+    }
     if(args.length < 1) {
         return message.channel.send("Proper usage is `buy_role <role>`").catch(console.error);
     }
@@ -42,3 +46,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 
 export const name = "buy_role";
 export const aliases = ["br"];
+export const category = HelpCategories.MONEY;
+export const help = "Buys a role from one of the server's available roles, check with the `roles` command.";

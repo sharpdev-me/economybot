@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import { GuildSettings, getBalance } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -45,3 +46,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 
 export const name = "set_balance";
 export const aliases = ["setbalances","sb", "set_balances", "setbalance"];
+export const category = HelpCategories.ADMIN;
+export const help = "Sets the balance of selected user(s)";

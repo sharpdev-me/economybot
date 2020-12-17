@@ -1,5 +1,6 @@
 import { DMChannel, Message, MessageEmbed } from "discord.js";
 import { GuildSettings, listTokens } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -38,3 +39,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 }
 
 export const name = "list_tokens";
+export const category = HelpCategories.ADMIN;
+export const help = "Lists this server's API tokens";

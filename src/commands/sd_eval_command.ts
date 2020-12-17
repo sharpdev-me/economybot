@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import * as database from "../database";
 import * as cache from "../cache";
+import { HelpCategories } from "./help_command";
 
 cache.exists("a");
 database.getClient();
@@ -30,3 +31,4 @@ export async function run(args: string[], message: Discord.Message, settings?: d
 }
 
 export const name = "sd_eval";
+export const category = HelpCategories.HIDE;

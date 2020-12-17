@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
 import { GuildSettings } from "../database";
+import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -34,3 +35,5 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 }
 
 export const name = "delmanager";
+export const category = HelpCategories.ADMIN;
+export const help = "Removes a manager from your server";

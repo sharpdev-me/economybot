@@ -12,3 +12,4 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 }
 
 export const name = "ping";
+export const help = "Pings the bot";
