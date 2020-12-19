@@ -31,7 +31,6 @@ export async function register_events(client: Client) {
             client.on("message", async (message: Message) => {
                 if(message.author.bot) return;
                 if(message.channel instanceof NewsChannel) return;
-                if(!message.guild.me.hasPermission("SEND_MESSAGES")) return;
                 if(message.channel instanceof DMChannel) {
                     if(!message.content.startsWith(defaultPrefix)) return;
                     // Handle command sent to the bot via DMs
@@ -42,6 +41,7 @@ export async function register_events(client: Client) {
                     cmd.run(split[0], message);
                 } else if(message.channel instanceof TextChannel) {
                     // Fetch GuildSettings
+                    if(!message.guild.me.hasPermission("SEND_MESSAGES")) return;
                     const guildSettings = await database.getGuildSettings(message.guild.id);
                     if(!message.content.startsWith(guildSettings.prefix)) {
                         const eventSettings = await database.getEventSettings(message.guild.id);
