@@ -6,7 +6,7 @@ import * as crypto from "crypto";
 
 import * as cache from "./cache";
 
-import { GuildSettings, emptyGuildSettings } from "./settings/settings";
+import { GuildSettings, emptyGuildSettings, saveGuildSettings } from "./settings/settings";
 
 const isProduction = process.env.ECONOMY_ENV == "production";
 
@@ -41,7 +41,7 @@ export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
     let s: GuildSettings;
     if(!settings) {
         s = emptyGuildSettings(id);
-        s.save();
+        saveGuildSettings(s);
     } else {
         const empty: any = emptyGuildSettings(id);
 
@@ -66,11 +66,9 @@ export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
             }
         }
 
-        console.dir(s);
-
         s = settings;
 
-        if(changed) s.save();
+        if(changed) saveGuildSettings(s);
     }
     if(isProduction) cache.set("guildSettings." + id, JSON.stringify(s)).catch(console.error).then(() => cache.expire("guildSettings." + id, 30));
     return s;

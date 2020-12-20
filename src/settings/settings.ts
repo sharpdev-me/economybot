@@ -35,12 +35,15 @@ export interface GuildSettings {
     messageCooldown: number;
     referrals: boolean;
     referrerAmount: number;
+}
 
-    save(): Promise<void>;
+export async function saveGuildSettings(settings: GuildSettings) {
+    const db = await getDatabase();
+    db.collection("guildSettings").replaceOne({id:settings.id}, settings, {upsert: true});
 }
 
 export function emptyGuildSettings(id: Snowflake): GuildSettings {
-    let r: any = {
+    return {
         id: id,
         prefix: isProduction ? "$" : "$$",
         defaultBalance: 100,
@@ -55,13 +58,5 @@ export function emptyGuildSettings(id: Snowflake): GuildSettings {
         referrals: false,
         referrerAmount: 0,
     };
-
-    r.save = async () => {
-        const db = await getDatabase();
-        db.collection("guildSettings").replaceOne({id:id}, r, {upsert: true});
-    }
-
-    let rr: GuildSettings = r;
-    return rr;
 }
 
