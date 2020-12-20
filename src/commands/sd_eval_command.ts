@@ -2,11 +2,12 @@ import * as Discord from "discord.js";
 import * as database from "../database";
 import * as cache from "../cache";
 import { HelpCategories } from "./help_command";
+import { GuildSettings } from "../settings/settings";
 
 cache.exists("a");
 database.getClient();
 
-export async function run(args: string[], message: Discord.Message, settings?: database.GuildSettings) {
+export async function run(args: string[], message: Discord.Message, settings?: GuildSettings) {
     let startDate = Date.now();
     let res = "";
     try {

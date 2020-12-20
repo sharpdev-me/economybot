@@ -5,6 +5,7 @@ import * as path from "path";
 import { HelpCategories } from "./commands/help_command";
 
 import * as database from "./database";
+import { GuildSettings } from "./settings/settings";
 
 const isProduction = process.env.ECONOMY_ENV == "production";
 
@@ -44,12 +45,11 @@ export async function register_events(client: Client) {
                     if(!message.guild.me.hasPermission("SEND_MESSAGES")) return;
                     const guildSettings = await database.getGuildSettings(message.guild.id);
                     if(!message.content.startsWith(guildSettings.prefix)) {
-                        const eventSettings = await database.getEventSettings(message.guild.id);
-                        if(!eventSettings.watchMessages) return;
+                        if(!guildSettings.watchMessages) return;
                         let lastTime = await database.timeOfLastMessage(message.guild.id, message.author.id);
-                        if((Date.now() - lastTime.milliseconds) > eventSettings.messageCooldown) {
+                        if((Date.now() - lastTime.milliseconds) > guildSettings.messageCooldown) {
                             let bal = await database.getBalance(message.author.id, message.guild.id);
-                            bal.balance = bal.balance + eventSettings.messageReward;
+                            bal.balance = bal.balance + guildSettings.messageReward;
                             bal.save();
                             lastTime.milliseconds = Date.now();
                             lastTime.save();
@@ -101,8 +101,8 @@ export async function register_events(client: Client) {
                 if(database.getReferral(invite.code) != null) database.deleteReferral(invite.code);
             });
             client.on("guildMemberAdd", async (member) => {
-                const eventSettings = await database.getEventSettings(member.guild.id);
-                if(!eventSettings.referrals) return;
+                const guildSettings = await database.getGuildSettings(member.guild.id);
+                if(!guildSettings.referrals) return;
                 let referrals = (await database.getAllReferrals(member.guild.id));
                 let invites = await member.guild.fetchInvites();
 
@@ -112,7 +112,7 @@ export async function register_events(client: Client) {
                         referral.uses = invite.uses;
                         referral.save();
                         let inviterBalance = await database.getBalance(referral.issuer, member.guild.id);
-                        inviterBalance.balance += eventSettings.referrerAmount;
+                        inviterBalance.balance += guildSettings.referrerAmount;
                         inviterBalance.save();
                     }
                 })
@@ -142,5 +142,5 @@ export interface Command {
     readonly aliases?: string[];
     readonly help?: string;
     readonly category?: HelpCategories;
-    readonly run: (args: string[], message: Message, settings?: database.GuildSettings) => void;
+    readonly run: (args: string[], message: Message, settings?: GuildSettings) => void;
 }

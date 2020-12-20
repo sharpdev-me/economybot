@@ -1,5 +1,6 @@
 import { Message } from "discord.js";
-import { GuildSettings, getRole, getBalance } from "../database";
+import { getRole, getBalance } from "../database";
+import { GuildSettings } from "../settings/settings";
 import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {

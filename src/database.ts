@@ -6,11 +6,13 @@ import * as crypto from "crypto";
 
 import * as cache from "./cache";
 
+import { GuildSettings, emptyGuildSettings } from "./settings/settings";
+
 const isProduction = process.env.ECONOMY_ENV == "production";
 
 const defaultPrefix = isProduction ? "$" : "$$";
 
-const url = process.env.ECONOMY_MONGO_URL
+const url = process.env.ECONOMY_MONGO_URL;
 
 let client: MongoClient;
 
@@ -30,17 +32,47 @@ export async function close(): Promise<void> {
 }
 
 export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
+    console.log("getGuildSettings");
     if(isProduction && await cache.exists("guildSettings." + id) === 1) {
         cache.expire("guildSettings." + id, 30);
-        return GuildSettings.fromJSON(await cache.get("guildSettings." + id));
+        //return GuildSettings.fromJSON(await cache.get("guildSettings." + id));
     }
     const database = await getDatabase();
-    const settings: GuildSettings | void = await database.collection<GuildSettings>("guildSettings").findOne({id:id});
+    const settings: any | void = await database.collection<GuildSettings>("guildSettings").findOne({id:id});
     let s: GuildSettings;
     if(!settings) {
-        s = new GuildSettings(id, defaultPrefix, 100, "coins", []);
+        s = emptyGuildSettings(id);
+        s.save();
     } else {
-        s = new GuildSettings(settings.id, settings.prefix, settings.defaultBalance, settings.currency, settings.managers);
+        const empty: any = emptyGuildSettings(id);
+        console.dir(empty);
+
+        let changed: boolean = false;
+
+        for (const key in settings) {
+            if (Object.prototype.hasOwnProperty.call(settings, key)) {
+                if(!Object.prototype.hasOwnProperty.call(empty, key)) {
+                    delete settings[key];
+                    changed = true;
+                }
+            }
+        }
+
+        for (const key in empty) {
+            if (Object.prototype.hasOwnProperty.call(empty, key)) {
+                const empty_value = empty[key];
+                if(!Object.prototype.hasOwnProperty.call(settings, key)) {
+                    settings[key] = empty_value;
+                    changed = true;
+                }
+            }
+        }
+
+        console.dir(s);
+
+        s = settings;
+
+        if(changed) s.save();
     }
     if(isProduction) cache.set("guildSettings." + id, JSON.stringify(s)).catch(console.error).then(() => cache.expire("guildSettings." + id, 30));
     return s;
@@ -63,24 +95,6 @@ export async function getBalances(guildID: Snowflake): Promise<UserBalance[]> {
     const balances = await database.collection<UserBalance>("balances").find({guildID: guildID});
     return (await balances.toArray()).map(ub => new UserBalance(ub.balance, ub.userID, ub.guildID)).sort((a,b) => b.balance - a.balance);
     
-}
-
-export async function getEventSettings(guildID: Snowflake): Promise<EventSettings> {
-    if(isProduction && await cache.exists("eventSettings." + guildID) === 1) {
-        cache.expire("eventSettings." + guildID, 30);
-        return EventSettings.fromJSON(await cache.get("eventSettings." + guildID));
-    }
-    const database = await getDatabase();
-
-    const eventSettings: EventSettings | null = await database.collection<EventSettings>("eventSettings").findOne({id: guildID});
-    let s: EventSettings;
-    if(!eventSettings) {
-        s = new EventSettings(guildID, false, 0, 0, false, 0);
-    } else {
-        s = new EventSettings(guildID, eventSettings.watchMessages, eventSettings.messageReward, eventSettings.messageCooldown, eventSettings.referrals, eventSettings.referrerAmount);
-    }
-    if(isProduction) cache.set("eventSettings." + guildID, JSON.stringify(s)).catch(console.error).then(() => cache.expire("eventSettings." + guildID, 30));
-    return s;
 }
 
 export async function isToken(token: string): Promise<boolean> {
@@ -279,73 +293,6 @@ export class UserBalance {
     }
 }
 
-
-export class GuildSettings {
-    readonly id: Snowflake;
-
-    prefix: string;
-
-    defaultBalance: number;
-    currency: string;
-
-    managers: Snowflake[];
-
-    constructor(id: Snowflake, prefix: string, defaultBalance: number, currency: string, managers: Snowflake[]) {
-        this.id = id;
-        this.prefix = prefix;
-        this.defaultBalance = defaultBalance;
-        this.currency = currency;
-        this.managers = managers;
-    }
-
-    async save() {
-        const database = await getDatabase();
-
-        database.collection("guildSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
-        
-        if(isProduction) await cache.set("guildSettings." + this.id, JSON.stringify(this));
-        if(isProduction) cache.expire("guildSettings." + this.id, 30);
-    }
-
-    static fromJSON(json: string): GuildSettings {
-        const obj = JSON.parse(json);
-        return new GuildSettings(obj.id, obj.prefix, obj.defaultBalance, obj.currency, obj.managers)
-    }
-}
-
-export class EventSettings {
-    readonly id: Snowflake;
-
-    watchMessages: boolean;
-    messageReward: number;
-    messageCooldown: number;
-
-    referrals: boolean;
-    referrerAmount: number;
-
-    constructor(id: Snowflake, watchMessages: boolean, messageReward: number, messageCooldown: number, referrals: boolean, referrerAmount: number) {
-        this.id = id;
-        this.watchMessages = watchMessages;
-        this.messageReward = messageReward;
-        this.messageCooldown = messageCooldown;
-        this.referrals = referrals;
-        this.referrerAmount = referrerAmount;
-    }
-
-    async save() {
-        const database = await getDatabase();
-        
-        database.collection("eventSettings").replaceOne({id: this.id}, this, {upsert: true}).catch(console.error);
-
-        if(isProduction) await cache.set("eventSettings." + this.id, JSON.stringify(this));
-        if(isProduction) cache.expire("eventSettings." + this.id, 30);
-    }
-
-    static fromJSON(json: string): EventSettings {
-        const obj = JSON.parse(json);
-        return new EventSettings(obj.id, obj.watchMessages, obj.messageReward, obj.messageCooldown, obj.referrals, obj.referrerAmount);
-    }
-}
 
 export interface ManagedRole {
     readonly id: Snowflake;

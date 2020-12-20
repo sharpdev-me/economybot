@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { GuildSettings } from "../database";
+import { GuildSettings } from "../settings/settings";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     message.channel.send("Head to https://economybot.xyz/ to invite me to your server!").catch(console.error);

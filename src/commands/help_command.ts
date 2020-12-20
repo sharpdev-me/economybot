@@ -1,5 +1,5 @@
 import { Message, MessageEmbed } from "discord.js";
-import { GuildSettings } from "../database";
+import { GuildSettings } from "../settings/settings";
 import { getCommands } from "../discord_events";
 
 export enum HelpCategories {

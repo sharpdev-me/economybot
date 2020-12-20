@@ -1,10 +1,10 @@
 import { Collection, CollectorFilter, Message } from "discord.js";
 import { stringify } from "querystring";
-import { getEventSettings, GuildSettings } from "../database";
+import { GuildSettings } from "../settings/settings";
 import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
-    if(!settings) return message.channel.send("This command can only be run in a server").catch(console.error);
+    /*if(!settings) return message.channel.send("This command can only be run in a server").catch(console.error);
     if(message.author.id !== message.guild.ownerID) {
         return message.channel.send("You do not have permission to execute this command!").catch(console.error);
     }
@@ -93,6 +93,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     await eventSettings.save().catch((e) => {message.channel.send("There was an error saving your settings. Report this as soon as possible.").catch(console.error);console.error(e)});
 
     message.channel.send("Congratulations! You've completed the setup wizard! Go out and enjoy EconomyBot to its fullest extent.").catch(console.error);
+    */
 }
 
 async function getMessage(message: Message) {

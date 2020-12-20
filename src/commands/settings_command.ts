@@ -1,9 +1,9 @@
 import { Message, MessageEmbed } from "discord.js";
-import { getEventSettings, GuildSettings } from "../database";
+import { GuildSettings } from "../settings/settings";
 import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
-    if(!settings) {
+    /*if(!settings) {
         // For future: allow users to change whether or not others can view their balances
         return message.channel.send("This command can only be run in a server!").catch(console.error);
     }
@@ -108,7 +108,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     } catch(e) {
         console.error(e);
         message.channel.send("There was an error saving your settings. Please report this as soon as possible.").catch(console.error);
-    }
+    }*/
 }
 
 export const name = "settings";
