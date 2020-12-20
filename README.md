@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="coin1_2048px.png">
+    <img src="coin1_2048px.png" width="64px" height="64px">
     <h1 align="center">EconomyBot</h1>
 </p>
 
