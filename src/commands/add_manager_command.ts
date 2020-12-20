@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { GuildSettings } from "../settings/settings";
+import { GuildSettings, saveGuildSettings } from "../settings/settings";
 import { HelpCategories } from "./help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
@@ -21,7 +21,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 
     settings.managers = currentManagers;
     try {
-        await settings.save();
+        await saveGuildSettings(settings);
         message.channel.send("You have updated your server's managers successfully!").catch(console.error);
     } catch(e) {
         console.error(e);
