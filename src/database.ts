@@ -32,7 +32,6 @@ export async function close(): Promise<void> {
 }
 
 export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
-    console.log("getGuildSettings");
     if(isProduction && await cache.exists("guildSettings." + id) === 1) {
         cache.expire("guildSettings." + id, 30);
         //return GuildSettings.fromJSON(await cache.get("guildSettings." + id));
@@ -45,7 +44,6 @@ export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
         s.save();
     } else {
         const empty: any = emptyGuildSettings(id);
-        console.dir(empty);
 
         let changed: boolean = false;
 
