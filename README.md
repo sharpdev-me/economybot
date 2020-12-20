@@ -1,8 +1,5 @@
 <p align="center">
-    <!--
-    Replace with actual logo image once high-res versions are obtained
-    -->
-    <img src="https://cdn.discordapp.com/avatars/657666331763671082/77644a18a073dd6055b4e61ab664f67d.png?size=64">
+    <img src="coin1_2048px.png">
     <h1 align="center">EconomyBot</h1>
 </p>
 
