@@ -21,6 +21,7 @@ import {register_events} from "./discord_events";
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import { getAllReferrals, getBalance, getBalances, getGuildSettings, getToken, isToken, Referral, deleteReferral } from "./database";
+import {begin_handling} from "./slash_commands/slash_handler";
 
 const dClient = new Discord.Client();
 
@@ -187,4 +188,5 @@ dClient.on("ready", async () => {
 });
 
 webApp.listen(process.env.ECONOMY_PORT || 3000);
+begin_handling(webApp).catch(console.error);
 register_events(dClient).catch(console.error).then(() => dClient.login(process.env.ECONOMY_TOKEN));
