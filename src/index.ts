@@ -21,7 +21,7 @@ import {register_events} from "./discord_events";
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import { getAllReferrals, getBalance, getBalances, getGuildSettings, getToken, isToken, Referral, deleteReferral } from "./database";
-import {begin_handling} from "./slash_commands/slash_handler";
+import { beginHandling } from "./slash-commands/slash_handler";
 
 const dClient = new Discord.Client();
 
@@ -33,10 +33,10 @@ const botVersion = "1.0.0";
 
 let available = false;
 
-webApp.use(bodyParser.json());
-webApp.use(bodyParser.urlencoded({extended:false}));
-
 const webAPI = express.Router();
+
+webAPI.use(bodyParser.json());
+webAPI.use(bodyParser.urlencoded({extended:false}));
 
 webAPI.get("/available", async (req, res) => {
     res.status(200).send({available:available});
@@ -188,5 +188,5 @@ dClient.on("ready", async () => {
 });
 
 webApp.listen(process.env.ECONOMY_PORT || 3000);
-begin_handling(webApp).catch(console.error);
+beginHandling(webApp).catch(console.error);
 register_events(dClient).catch(console.error).then(() => dClient.login(process.env.ECONOMY_TOKEN));
