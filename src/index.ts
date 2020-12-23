@@ -20,7 +20,7 @@ import {register_events} from "./discord_events";
 
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import { getAllReferrals, getBalance, getBalances, getGuildSettings, getToken, isToken, Referral, deleteReferral } from "./database";
+import { getAllReferrals, getBalance, getBalances, getGuildSettings, getToken, isToken, Referral, deleteReferral, getGuildCount } from "./database";
 import { beginHandling } from "./slash-commands/slash_handler";
 
 const dClient = new Discord.Client();
@@ -45,8 +45,7 @@ webAPI.get("/available", async (req, res) => {
 webAPI.get("/stats", async (req, res) => {
     if(!available) return res.status(409).send({error:"bot not available"});
     let response = {
-        guild_count:dClient.guilds.cache.size,
-        user_count:dClient.users.cache.size,
+        guild_count:await getGuildCount(),
         version: botVersion,
         uptime: dClient.uptime,
         url: "https://economybot.xyz/"

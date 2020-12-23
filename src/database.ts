@@ -48,6 +48,20 @@ export async function close(): Promise<void> {
     client.close();
 }
 
+export async function getGuildCount(): Promise<number> {
+    const database = await getDatabase();
+
+    let amount = 0;
+
+    let cursor = database.collection("guildSettings").find({});
+    while(await cursor.hasNext()) {
+        amount++;
+        cursor.next();
+    }
+
+    return amount;
+}
+
 export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
     if(isProduction && await cache.exists("guildSettings." + id) === 1) {
         cache.expire("guildSettings." + id, 30);
