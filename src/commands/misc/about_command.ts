@@ -16,21 +16,13 @@
  */
 
 import { Message } from "discord.js";
-import { GuildSettings } from "../settings/settings";
-import { HelpCategories } from "./help_command";
+import { GuildSettings } from "../../settings/settings";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
-    if(!settings) {
-        return message.channel.send("This command can only be run in a server!").catch(console.error);
-    }
-    let owner = message.guild.owner;
-    let s = "The managers of this server are:\n" + `\`${owner.displayName} (${owner.user.username}#${owner.user.discriminator})\`` + "\n";
-    for await (const manager of settings.managers.map(async v => await message.guild.members.fetch(v))) {
-        s += `\`${manager.displayName} (${manager.user.username}#${manager.user.discriminator})\`\n`;
-    }
-    message.channel.send(s).catch(console.error);
+    message.channel.send("EconomyBot was created by one person (SharpDev#1011) because he was tired of seeing different points systems and server economies.\n"
+        + "If you just use these bots, you can help EconomyBot achieve its purpose by telling bot developers about me.\n"
+        + "If you're a bot developer, you can go to https://economybot.xyz/docs/ to learn how to include me in your projects!").catch(console.error);    
 }
 
-export const name = "managers";
-export const category = HelpCategories.ADMIN;
-export const help = "List all managers on this server";
+export const name = "about";
+export const help = "Get some information about the bot's development.";

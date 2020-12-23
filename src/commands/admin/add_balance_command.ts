@@ -16,9 +16,9 @@
  */
 
 import { Message } from "discord.js";
-import { getBalance } from "../database";
-import { GuildSettings } from "../settings/settings";
-import { HelpCategories } from "./help_command";
+import { getBalance } from "../../database";
+import { GuildSettings } from "../../settings/settings";
+import { HelpCategories } from "../misc/help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
@@ -28,7 +28,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
         return message.channel.send("You do not have permission to execute this command!").catch(console.error);
     }
     if(args.length < 1) {
-        return message.channel.send("Proper usage is \`set_balance <balance> [user1, user2...]`").catch(console.error);
+        return message.channel.send("Proper usage is \`add_balance <balance> [user1, user2...]`").catch(console.error);
     }
     const balance: number = Number(args[0]);
     if(isNaN(balance) || balance == Infinity || balance == -Infinity) {
@@ -37,7 +37,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     
     if(message.mentions.members.size < 1) {
         const userBalance = await getBalance(message.author.id, message.guild.id);
-        userBalance.balance = balance;
+        userBalance.balance -= balance;
         userBalance.save().then(() => {
             message.channel.send("Your balance has been updated!").catch(console.error);
         }).catch(err => {
@@ -49,7 +49,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     let error = false;
     message.mentions.members.forEach(async member => {
         const userBalance = await getBalance(member.id, message.guild.id);
-        userBalance.balance = balance;
+        userBalance.balance -= balance;
         userBalance.save().catch(err => {
             console.error(err);
             error = true;
@@ -62,7 +62,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     message.channel.send("Those balance(s) have been updated!").catch(console.error);
 }
 
-export const name = "set_balance";
-export const aliases = ["setbalances","sb", "set_balances", "setbalance"];
+export const name = "add_balance";
+export const aliases = ["addbalances","ab", "add_balances", "addbalance"];
 export const category = HelpCategories.ADMIN;
-export const help = "Sets the balance of selected user(s)";
+export const help = "Give user(s) money";

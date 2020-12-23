@@ -17,9 +17,9 @@
 
 import {Client, Message, DMChannel, NewsChannel, TextChannel, Snowflake} from "discord.js";
 
-import { readdir } from "fs";
+import { readdir, lstatSync } from "fs";
 import * as path from "path";
-import { HelpCategories } from "./commands/help_command";
+import { HelpCategories } from "./commands/misc/help_command";
 
 import * as database from "./database";
 import { GuildSettings } from "./settings/settings";
@@ -30,21 +30,28 @@ const defaultPrefix = isProduction ? "$" : "$$";
 
 let commands: {[key: string]: Command} = {};
 
+function addCommands(files: string[]) {
+    for (const file of files) {
+        const filePath = path.resolve(__dirname, "./commands/", file);
+        if(lstatSync(filePath).isDirectory()) {
+            addCommands(files);
+        }
+        const props = require(filePath);
+        if(props.aliases) {
+            for (let i = 0; i < props.aliases.length; i++) {
+                const alias = props.aliases[i];
+                commands[alias] = props;
+            }
+        }
+        commands[props.name] = props;
+    }
+}
+
 export async function register_events(client: Client) {
     return new Promise((reject, resolve) => {
         readdir(path.resolve(__dirname, "./commands"), (err, files) => {
             if(err) return reject(err);
-            for (const file of files) {
-                const filePath = path.resolve(__dirname, "./commands/", file);
-                const props = require(filePath);
-                if(props.aliases) {
-                    for (let i = 0; i < props.aliases.length; i++) {
-                        const alias = props.aliases[i];
-                        commands[alias] = props;
-                    }
-                }
-                commands[props.name] = props;
-            }
+            addCommands(files);
     
             client.on("message", async (message: Message) => {
                 if(message.author.bot) return;

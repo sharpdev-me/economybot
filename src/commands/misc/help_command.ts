@@ -16,14 +16,15 @@
  */
 
 import { Message, MessageEmbed } from "discord.js";
-import { GuildSettings } from "../settings/settings";
-import { getCommands } from "../discord_events";
+import { GuildSettings } from "../../settings/settings";
+import { getCommands } from "../../discord_events";
 
 export enum HelpCategories {
     NONE,
     ADMIN,
     MONEY,
     MISC,
+    GAMBLING,
     HIDE,
 }
 
@@ -33,6 +34,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     let adminField = "";
     let moneyField = "";
     let miscField = "";
+    let gamblingField = "";
 
     for (const name in commands) {
         if (Object.prototype.hasOwnProperty.call(commands, name)) {
@@ -51,6 +53,9 @@ export async function run(args: string[], message: Message, settings?: GuildSett
                 case HelpCategories.MONEY:
                     moneyField += `\`${name}\` - ${help}\n`;
                     break;
+                case HelpCategories.GAMBLING:
+                    gamblingField += `\`${name}\` - ${help}\n`;
+                    break;
                 default:
                     continue;
             }
@@ -60,9 +65,10 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     const embed = new MessageEmbed()
             .setColor(0xFFF700)
             .setTitle("EconomyBot Help")
-            .addField("Money Commands", moneyField + "---------------")
-            .addField("Admin Commands", adminField + "---------------")
-            .addField("Misc Commands", miscField   + "---------------");
+            .addField("Money Commands",    moneyField    + "---------------")
+            .addField("Gambling Commands", gamblingField + "---------------")
+            .addField("Admin Commands",    adminField    + "---------------")
+            .addField("Misc Commands",     miscField     + "---------------");
     
     message.channel.send(embed).catch(console.error);
 }

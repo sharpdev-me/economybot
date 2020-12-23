@@ -16,34 +16,49 @@
  */
 
 import { Message, MessageEmbed } from "discord.js";
-import { getRoles } from "../database";
-import { GuildSettings } from "../settings/settings";
-import { HelpCategories } from "./help_command";
+import { getBalances, getBalance } from "../../database";
+import { GuildSettings } from "../../settings/settings";
+import { HelpCategories } from "../misc/help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) {
         return message.channel.send("This command can only be run in a server!").catch(console.error);
     }
-    let roles = await getRoles(message.guild.id);
+    const balances = await getBalances(message.guild.id);
+
+    let amount: number = 10;
+
+    if(args.length > 0) {
+        amount = Math.min(Number(args[0]), 30);
+        if(isNaN(amount)) {
+            return message.channel.send("Amount must be a number!").catch(console.error);
+        }
+    }
+
+    const yourPlace = balances.findIndex((value) => {
+        return value.userID == message.author.id;
+    });
 
     const embed = new MessageEmbed()
         .setColor(0xFFF700)
-        .setFooter("Run 'buy_role <name>' to purchase a role")
-        .setTitle(`Roles available to purchase`);
+        .setFooter(`Your position: ${yourPlace + 1}`)
+        .setTitle(`Top ${amount} Richest Players`);
 
     let value = "";
 
+    if(amount >= balances.length) amount = balances.length;
 
-    for(let i = 0; i < roles.length; i++) {
-        const role = roles[i];
-        const discordRole = await message.guild.roles.fetch(role.id);
-        value += `\`${discordRole.name}\` for \`${role.cost}\` ${settings.currency}\n`;
+    for(let i = 0; i < amount; i++) {
+        const element = balances[i];
+        const user = await message.client.users.fetch(element.userID);
+        value += `${i + 1}. **${user.username}#${user.discriminator}**: ${element.balance} ${settings.currency}\n`;
     }
 
     embed.setDescription(value);
     message.channel.send(embed).catch(console.error);
 }
 
-export const name = "roles";
+export const name = "leaderboard";
+export const aliases = ["leader", "top", "lb"];
 export const category = HelpCategories.MONEY;
-export const help = "View a list of all roles this server is selling. You can purchase a role with the `buy_role` command.";
+export const help = "Views the users with the most money on the server";
