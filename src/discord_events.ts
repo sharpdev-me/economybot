@@ -17,7 +17,7 @@
 
 import {Client, Message, DMChannel, NewsChannel, TextChannel, Snowflake} from "discord.js";
 
-import { readdir, lstatSync } from "fs";
+import { readdir, lstatSync, readdirSync } from "fs";
 import * as path from "path";
 import { HelpCategories } from "./commands/misc/help_command";
 
@@ -34,7 +34,8 @@ function addCommands(files: string[]) {
     for (const file of files) {
         const filePath = path.resolve(__dirname, "./commands/", file);
         if(lstatSync(filePath).isDirectory()) {
-            addCommands(files);
+            addCommands(readdirSync(filePath));
+            continue;
         }
         const props = require(filePath);
         if(props.aliases) {
