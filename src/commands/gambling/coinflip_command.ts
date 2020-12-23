@@ -64,6 +64,9 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     if(balance.balance < amount) {
         return message.channel.send("You don't have enough money to create this coinflip.").catch(console.error);
     }
+    if(message.mentions.members.first().id == message.author.id) {
+        return message.channel.send("You cannot send a coinflip request to yourself.").catch(console.error);
+    }
 
     outstandingFlips.push({
         amount: amount,
@@ -76,7 +79,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
         if(flipIndex != -1) {
             outstandingFlips[flipIndex] = undefined;
         }
-    }, 1000 * 5)
+    }, 1000 * 60 * 5)
 
     return message.channel.send(`A coinflip request for \`${args[1]} ${settings.currency}\` has been sent to <@${message.mentions.members.first()}>. This request will expire in \`5 minutes\``).catch(console.error);
 }
