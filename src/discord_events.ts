@@ -30,11 +30,11 @@ const defaultPrefix = isProduction ? "$" : "$$";
 
 let commands: {[key: string]: Command} = {};
 
-function addCommands(files: string[]) {
+function addCommands(files: string[], currentPath: string) {
     for (const file of files) {
-        const filePath = path.resolve(__dirname, "./commands/", file);
+        const filePath = path.resolve(__dirname, currentPath, file);
         if(lstatSync(filePath).isDirectory()) {
-            addCommands(readdirSync(filePath));
+            addCommands(readdirSync(filePath), `${currentPath}/${file}`);
             continue;
         }
         const props = require(filePath);
@@ -52,7 +52,7 @@ export async function register_events(client: Client) {
     return new Promise((reject, resolve) => {
         readdir(path.resolve(__dirname, "./commands"), (err, files) => {
             if(err) return reject(err);
-            addCommands(files);
+            addCommands(files, "./commands");
     
             client.on("message", async (message: Message) => {
                 if(message.author.bot) return;
