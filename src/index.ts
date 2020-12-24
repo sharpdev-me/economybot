@@ -61,16 +61,16 @@ webAPI.get("/guilds/:guildID", async (req, res) => {
 
     // Ensure token has access to this guild
 
-    if(!await isToken(token)) return res.status(401).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
+    if(!await isToken(token)) return res.status(403).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
 
     const apiToken = await getToken(token);
-    if(apiToken.guild !== guildID) return res.status(401).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
+    if(apiToken.guild !== guildID) return res.status(403).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
 
     try {
         let guild = await dClient.guilds.fetch(guildID);
         let guildSettings = await getGuildSettings(guildID);
         let managers = guildSettings.managers;
-        managers.push(guild.ownerID);
+        managers[managers.length] = guild.ownerID;
         res.status(200).send({
             id:guildID,
             icon:guild.iconURL(),
@@ -94,10 +94,10 @@ webAPI.get("/guilds/:guildID/balances", async (req, res) => {
 
     // Ensure token has access to this guild
 
-    if(!await isToken(token)) return res.status(401).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
+    if(!await isToken(token)) return res.status(403).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
 
     const apiToken = await getToken(token);
-    if(apiToken.guild !== guildID) return res.status(401).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
+    if(apiToken.guild !== guildID) return res.status(403).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
 
     try {
         let balances = await getBalances(guildID);
@@ -117,10 +117,10 @@ webAPI.get("/guilds/:guildID/balances/:userID", async (req, res) => {
 
     // Ensure token has access to this guild
 
-    if(!await isToken(token)) return res.status(401).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
+    if(!await isToken(token)) return res.status(403).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
 
     const apiToken = await getToken(token);
-    if(apiToken.guild !== guildID) return res.status(401).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
+    if(apiToken.guild !== guildID) return res.status(403).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
 
     try {
         let balance = await getBalance(userID, guildID);
@@ -143,10 +143,10 @@ webAPI.put("/guilds/:guildID/balances/:userID", async (req, res) => {
 
     // Ensure token has access to this guild
 
-    if(!await isToken(token)) return res.status(401).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
+    if(!await isToken(token)) return res.status(403).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
 
     const apiToken = await getToken(token);
-    if(apiToken.guild !== guildID) return res.status(401).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
+    if(apiToken.guild !== guildID) return res.status(403).send({error:"invalid token",message:"Token does not exist or does not have access to the requested resource"});
 
     try {
         let apiBalance = await getBalance(userID, guildID);
