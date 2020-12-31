@@ -24,7 +24,7 @@ import { BOT_VERSION } from "./constants";
 
 import * as database from "./database";
 import { deleteReferral, getAllReferrals, Referral } from "./database";
-import { GuildSettings } from "../settings/settings";
+import { GuildSettings } from "./settings";
 
 const isProduction = process.env.ECONOMY_ENV == "production";
 

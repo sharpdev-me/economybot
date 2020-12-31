@@ -23,7 +23,7 @@ import * as crypto from "crypto";
 
 import * as cache from "./cache";
 
-import { GuildSettings, emptyGuildSettings, saveGuildSettings } from "./settings/settings";
+import { GuildSettings, emptyGuildSettings, saveGuildSettings } from "./settings";
 
 const isProduction = process.env.ECONOMY_ENV == "production";
 

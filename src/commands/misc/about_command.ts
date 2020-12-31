@@ -16,7 +16,7 @@
  */
 
 import { Message } from "discord.js";
-import { GuildSettings } from "../../settings/settings";
+import { GuildSettings } from "../../util/settings";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     message.channel.send("EconomyBot was created by one person (SharpDev#1011) because he was tired of seeing different points systems and server economies.\n"

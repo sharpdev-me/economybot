@@ -16,7 +16,7 @@
  */
 
 import { Message } from "discord.js";
-import { GuildSettings, saveGuildSettings } from "../../settings/settings";
+import { GuildSettings, saveGuildSettings } from "../../util/settings";
 import { HelpCategories } from "../misc/help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
