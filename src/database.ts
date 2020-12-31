@@ -63,10 +63,6 @@ export async function getGuildCount(): Promise<number> {
 }
 
 export async function getGuildSettings(id: Snowflake): Promise<GuildSettings> {
-    if(isProduction && await cache.exists("guildSettings." + id) === 1) {
-        cache.expire("guildSettings." + id, 30);
-        //return GuildSettings.fromJSON(await cache.get("guildSettings." + id));
-    }
     const database = await getDatabase();
     const settings: any | void = await database.collection<GuildSettings>("guildSettings").findOne({id:id});
     let s: GuildSettings;
