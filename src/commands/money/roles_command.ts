@@ -16,8 +16,8 @@
  */
 
 import { Message, MessageEmbed } from "discord.js";
-import { getRoles } from "../../database";
-import { GuildSettings } from "../../settings/settings";
+import { getRoles } from "../../util/database";
+import { GuildSettings } from "../../util/settings";
 import { HelpCategories } from "../misc/help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {

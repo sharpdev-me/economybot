@@ -16,8 +16,8 @@
  */
 
 import { Message, MessageEmbed } from "discord.js";
-import { getBalances, getBalance } from "../../database";
-import { GuildSettings } from "../../settings/settings";
+import { getBalances } from "../../util/database";
+import { GuildSettings } from "../../util/settings";
 import { HelpCategories } from "../misc/help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {

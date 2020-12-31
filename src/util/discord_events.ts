@@ -19,10 +19,12 @@ import {Client, Message, DMChannel, NewsChannel, TextChannel, Snowflake} from "d
 
 import { readdir, lstatSync, readdirSync } from "fs";
 import * as path from "path";
-import { HelpCategories } from "./commands/misc/help_command";
+import { HelpCategories } from "../commands/misc/help_command";
+import { BOT_VERSION } from "./constants";
 
 import * as database from "./database";
-import { GuildSettings } from "./settings/settings";
+import { deleteReferral, getAllReferrals, Referral } from "./database";
+import { GuildSettings } from "../settings/settings";
 
 const isProduction = process.env.ECONOMY_ENV == "production";
 
@@ -53,6 +55,27 @@ export async function register_events(client: Client) {
         readdir(path.resolve(__dirname, "./commands"), (err, files) => {
             if(err) return reject(err);
             addCommands(files, "./commands");
+            client.on("ready", async () => {
+                client.user.setPresence({activity: {type: "LISTENING", name: "$invite | v" + BOT_VERSION}, status: "online"});
+
+                client.guilds.cache.forEach(async guild => {
+                    let referrals = await getAllReferrals(guild.id);
+                    let referralMap = referrals.map(referral => referral.code);
+                    let guildInvites = await guild.fetchInvites();
+                    let invitesMap = guildInvites.map(invite => invite.code);
+                    referralMap.forEach((referralCode) => {
+                        if(!invitesMap.includes(referralCode)) {
+                            deleteReferral(referralCode);
+                        }
+                    });
+
+                    guildInvites.forEach((invite) => {
+                        if(!referralMap.includes(invite.code)) {
+                            new Referral(invite.inviter.id, invite.guild.id, invite.code, invite.url, invite.uses).save();
+                        }
+                    });        
+                });
+            })
     
             client.on("message", async (message: Message) => {
                 if(message.author.bot) return;

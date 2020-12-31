@@ -16,8 +16,8 @@
  */
 
 import { Message, Snowflake } from "discord.js";
-import { getBalance } from "../../database";
-import { GuildSettings } from "../../settings/settings";
+import { getBalance } from "../../util/database";
+import { GuildSettings } from "../../util/settings";
 import { HelpCategories } from "../misc/help_command";
 
 const outstandingFlips: Coinflip[] = [];

@@ -19,10 +19,10 @@ import DiscordInteractions, { ApplicationCommandInteractionData, ApplicationComm
 import { Express } from "express";
 import * as fs from "fs/promises";
 import { resolve } from "path";
-import { GuildSettings } from "../settings/settings";
+import { GuildSettings } from "../util/settings";
 
 import { verifyKeyMiddleware } from "discord-interactions";
-import { getGuildSettings } from "../database";
+import { getGuildSettings } from "../util/database";
 
 export const slash_commands: {[key: string]: SlashCommand} = {};
 

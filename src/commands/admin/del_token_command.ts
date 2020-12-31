@@ -16,8 +16,8 @@
  */
 
 import { DMChannel, Message } from "discord.js";
-import { newToken, removeToken } from "../../database";
-import { GuildSettings } from "../../settings/settings";
+import { newToken, removeToken } from "../../util/database";
+import { GuildSettings } from "../../util/settings";
 import { HelpCategories } from "../misc/help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {

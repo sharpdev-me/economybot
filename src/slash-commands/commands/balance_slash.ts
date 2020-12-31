@@ -16,8 +16,8 @@
  */
 
 import { GuildMember, ApplicationCommandInteractionData, Interaction, InteractionApplicationCommandCallbackData, InteractionResponse, InteractionResponseType } from "slash-commands";
-import { getBalance } from "../../database";
-import { GuildSettings } from "../../settings/settings";
+import { getBalance } from "../../util/database";
+import { GuildSettings } from "../../util/settings";
 
 export async function run(data: ApplicationCommandInteractionData, member: GuildMember, settings: GuildSettings, interaction: Interaction): Promise<InteractionResponse> {
     return {type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE, data: {
