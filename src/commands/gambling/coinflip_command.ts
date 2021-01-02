@@ -92,10 +92,14 @@ async function doRandom(participants: Snowflake[], amount: number, guild: Snowfl
     if(randomResult < 50) {
         issuer.balance += amount;
         target.balance -= amount;
+        issuer.save();
+        target.save();
         return issuer.userID;
     } else if(randomResult > 50) {
         target.balance += amount;
         issuer.balance -= amount;
+        issuer.save();
+        target.save();
         return target.userID;
     } else {
         return doRandom(participants, amount, guild);
