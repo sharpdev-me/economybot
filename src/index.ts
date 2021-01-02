@@ -17,9 +17,11 @@
 
 import {Client as DiscordClient} from "discord.js";
 import {register_events} from "./util/discord_events";
+import listen from "./web-server/api";
 
 
 // Create new client and connect to Discord
 const discordClient = new DiscordClient();
 
+listen();
 register_events(discordClient).catch(console.error).then(() => discordClient.login(process.env.ECONOMY_TOKEN));

@@ -245,6 +245,30 @@ export async function delRole(id: Snowflake) {
     (await getDatabase()).collection("managedRoles").deleteOne({id:id});
 }
 
+export async function storeOAuthUser(user: OAuthUser) {
+    (await getDatabase()).collection("oauthUsers").replaceOne({state:user.state}, user, {upsert: true});
+}
+
+export async function hasOAuthUser(state: string): Promise<boolean> {
+    return (await (await getDatabase()).collection("oauthUsers").findOne({state: state})) != null;
+}
+
+export async function getOAuthUser(state: string): Promise<OAuthUser> {
+    return (await (await getDatabase()).collection("oauthUsers").findOne({state: state}));
+}
+
+// Create interfaces/classes for saving & getting state, access token, refresh token of authenticated user
+
+export interface OAuthUser {
+    id: Snowflake,
+    avatar: string,
+    discriminator: string,
+    username: string,
+    access_token: string,
+    refresh_token: string,
+    state: string
+}
+
 export class Referral {
     readonly issuer: Snowflake;
     readonly guild: Snowflake;
