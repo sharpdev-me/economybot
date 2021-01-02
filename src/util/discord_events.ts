@@ -52,11 +52,15 @@ function addCommands(files: string[], currentPath: string) {
 
 export async function register_events(client: Client) {
     return new Promise((reject, resolve) => {
-        readdir(path.resolve(__dirname, "./commands"), (err, files) => {
+        readdir(path.resolve(__dirname, "../commands"), (err, files) => {
             if(err) return reject(err);
-            addCommands(files, "./commands");
+            addCommands(files, "../commands");
             client.on("ready", async () => {
-                client.user.setPresence({activity: {type: "LISTENING", name: "$invite | v" + BOT_VERSION}, status: "online"});
+                console.log("Bot online");
+                client.user.setPresence({activity: {type: "LISTENING", name: "$help | v" + BOT_VERSION}, status: "online"});
+                setInterval(() => {
+                    client.user.setPresence({activity: {type: "LISTENING", name: "$help | v" + BOT_VERSION}, status: "online"});
+                }, 3600000 /* Update presence every hour */)
 
                 client.guilds.cache.forEach(async guild => {
                     let referrals = await getAllReferrals(guild.id);
