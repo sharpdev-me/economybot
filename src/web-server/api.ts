@@ -38,7 +38,7 @@ const webRouter = express.Router();
 
 webRouter.get("/login", async (req, res) => {
     if(await checkSignedIn(req, res)) {
-        return res.redirect("/dashboard");
+        return defaultRedirect(req, res);
     }
     let rand = randomBytes(15).toString("hex");
 
@@ -47,6 +47,9 @@ webRouter.get("/login", async (req, res) => {
     }
 
     res.cookie("state", rand, {signed: true, maxAge: 900000, path: "/"});
+    if(req.query.returnPage) {
+        res.cookie("returnPage", req.query.returnPage, {maxAge: 900000, path: "/"});
+    }
     res.redirect(createAuthURL(["identify", "guilds"], rand));
 });
 
@@ -76,7 +79,7 @@ webRouter.get("/callback", async (req, res) => {
         user.state = req.signedCookies.state;
         try {
             await storeOAuthUser(user);
-            return res.redirect("/dashboard");
+            return defaultRedirect(req, res);
         } catch(err) {
             console.error(err);
             return res.status(500).send();
@@ -99,6 +102,17 @@ app.use("/internal", webRouter);
 
 async function checkSignedIn(req: express.Request, res: express.Response) {
     return !(req.signedCookies === null || req.signedCookies == {} || req.signedCookies.state === undefined || !await hasOAuthUser(req.signedCookies.state));
+}
+
+async function defaultRedirect(req: express.Request, res: express.Response) {
+    if(req.query.returnPage) {
+        return res.redirect(req.query.returnPage as string);
+    }
+    if(req.cookies.returnPage) {
+        res.cookie("returnPage", "", {maxAge: 0});
+        return res.redirect(req.cookies.returnPage as string);
+    }
+    return res.redirect("/dash");
 }
 
 export default function listen() {
