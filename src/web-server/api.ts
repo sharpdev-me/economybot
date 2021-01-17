@@ -88,8 +88,7 @@ webRouter.get("/callback", async (req, res) => {
 });
 
 webRouter.get("/check_signed_in", async (req, res) => {
-    if(await checkSignedIn(req, res)) return res.status(200).send({signed_in:false});
-    return res.status(200).send({signed_in:true});
+    return res.status(200).send({signed_in:await checkSignedIn(req, res)});
 });
 
 // Create more endpoints for use through the main website
