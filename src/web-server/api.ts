@@ -37,10 +37,8 @@ const restRouter = express.Router();
 const webRouter = express.Router();
 
 webRouter.get("/login", async (req, res) => {
-    if(req.signedCookies !== undefined && req.signedCookies.state !== undefined) {
-        if(hasOAuthUser(req.signedCookies.state)) {
-            return res.redirect("/dashboard");
-        }
+    if(await checkSignedIn(req, res)) {
+        return res.redirect("/dashboard");
     }
     let rand = randomBytes(15).toString("hex");
 
@@ -90,7 +88,7 @@ webRouter.get("/callback", async (req, res) => {
 });
 
 webRouter.get("/check_signed_in", async (req, res) => {
-    if(req.signedCookies === null || req.signedCookies.state === undefined || !await hasOAuthUser(req.signedCookies.state)) return res.status(200).send({signed_in:false});
+    if(await checkSignedIn(req, res)) return res.status(200).send({signed_in:false});
     return res.status(200).send({signed_in:true});
 });
 
@@ -99,6 +97,10 @@ webRouter.get("/check_signed_in", async (req, res) => {
 
 app.use("/api", restRouter);
 app.use("/internal", webRouter);
+
+async function checkSignedIn(req: express.Request, res: express.Response) {
+    return !(req.signedCookies === null || req.signedCookies == {} || req.signedCookies.state === undefined || !await hasOAuthUser(req.signedCookies.state));
+}
 
 export default function listen() {
     console.log(process.env.ECONOMY_PORT || 3000);
