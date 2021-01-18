@@ -22,11 +22,13 @@ import { createAuthURL } from "../util/oauth_builder";
 import DiscordOauth2 = require("discord-oauth2");
 import { randomBytes } from "crypto";
 import { hasOAuthUser, storeOAuthUser } from "../util/database";
+import * as cors from "cors"
 
 const oauth = new DiscordOauth2();
 
 const app = express();
 
+app.use(cors());
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use(cookieParser(COOKIE_SIGNATURE));
