@@ -64,6 +64,7 @@ export async function register_events(client: Client) {
                 }, 3600000 /* Update presence every hour */)
 
                 client.guilds.cache.forEach(async guild => {
+                    if(!guild.me.hasPermission("MANAGE_GUILD")) return;
                     let referrals = await getAllReferrals(guild.id);
                     let referralMap = referrals.map(referral => referral.code);
                     let guildInvites = await guild.fetchInvites();
@@ -117,6 +118,7 @@ export async function register_events(client: Client) {
                 }
             });
             client.on("inviteCreate", async (invite) => {
+                if(!invite.guild.me.hasPermission("MANAGE_GUILD")) return;
                 let referrals = await database.getAllReferrals(invite.guild.id);
                 let referralMap = referrals.map(referral => referral.code);
                 let guildInvites = await invite.guild.fetchInvites();
@@ -136,6 +138,7 @@ export async function register_events(client: Client) {
                 new database.Referral(invite.inviter.id, invite.guild.id, invite.code, invite.url, 0).save();
             });
             client.on("inviteDelete", async (invite) => {
+                if(!invite.guild.me.hasPermission("MANAGE_GUILD")) return;
                 let referrals = await database.getAllReferrals(invite.guild.id);
                 let referralMap = referrals.map(referral => referral.code);
                 let guildInvites = await invite.guild.fetchInvites();
@@ -155,7 +158,7 @@ export async function register_events(client: Client) {
             });
             client.on("guildMemberAdd", async (member) => {
                 const guildSettings = await database.getGuildSettings(member.guild.id);
-                if(!guildSettings.referrals) return;
+                if(!guildSettings.referrals || member.guild.me.hasPermission("MANAGE_GUILD")) return;
                 let referrals = (await database.getAllReferrals(member.guild.id));
                 let invites = await member.guild.fetchInvites();
 

@@ -16,7 +16,7 @@
  */
 
 import { Message, MessageEmbed } from "discord.js";
-import { GuildSettings, saveGuildSettings, settingsDescriptions } from "../../util/settings";
+import { GuildSettings, saveGuildSettings, settingsDescriptions, settingsPermissions } from "../../util/settings";
 import { HelpCategories } from "../misc/help_command";
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
@@ -55,6 +55,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
         return message.channel.send("Proper usage is `settings [<setting> <value>]`").catch(console.error);
     }
     const setting = args[0];
+    if(settingsPermissions[setting] && !message.guild.me.hasPermission(settingsPermissions[setting])) return message.channel.send(`This setting requires the bot to have the \`${settingsPermissions[setting]}\` permission.`).catch(console.error);
     if(Object.prototype.hasOwnProperty.call(settings, setting)) {
         if(verifyInput(args[1], typeof settingsAny[setting])) {
             settingsAny[setting] = typeInput(args[1], typeof settingsAny[setting]);

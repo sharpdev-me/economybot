@@ -27,6 +27,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     if(settings.managers.findIndex((u) => {return u === message.author.id}) === -1 && message.author.id !== message.guild.ownerID) {
         return message.channel.send("You do not have permission to execute this command!").catch(console.error);
     }
+    if(!message.guild.me.hasPermission("MANAGE_ROLES")) return message.channel.send("This command requires the bot to have the `Manage Roles` permission.").catch(console.error);
     if(args.length < 2) {
         return message.channel.send("Proper usage is \`new_role <cost> <role>`").catch(console.error);
     }

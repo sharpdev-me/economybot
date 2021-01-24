@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Snowflake } from "discord.js";
+import { PermissionString, Snowflake } from "discord.js";
 import { getDatabase } from "./database";
 
 const isProduction = process.env.ECONOMY_ENV == "production";
@@ -32,6 +32,12 @@ export const settingsDescriptions = {
     messageCooldown: "The time in milliseconds between messages required to get a reward",
     referrals: "Enable getting rewards for inviting new users",
     referrerAmount: "The amount to give a referrer when their link is used",
+}
+
+export const settingsPermissions: {[key: string]: PermissionString} = {
+    referrals: "MANAGE_GUILD",
+    referrerAmount: "MANAGE_GUILD",
+    allowRoleRefunds: "MANAGE_ROLES"
 }
 
 export interface GuildSettings {
