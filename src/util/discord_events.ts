@@ -15,12 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {Client, Message, DMChannel, NewsChannel, TextChannel, Snowflake} from "discord.js";
+import {Client, Message, DMChannel, NewsChannel, TextChannel, Snowflake, PresenceData} from "discord.js";
 
 import { readdir, lstatSync, readdirSync } from "fs";
 import * as path from "path";
 import { HelpCategories } from "../commands/misc/help_command";
-import { BOT_VERSION } from "./constants";
+import { BOT_VERSION, GIT_INFO } from "./constants";
 
 import * as database from "./database";
 import { deleteReferral, getAllReferrals, Referral } from "./database";
@@ -57,9 +57,10 @@ export async function register_events(client: Client) {
             addCommands(files, "../commands");
             client.on("ready", async () => {
                 console.log("Bot online");
-                client.user.setPresence({activity: {type: "LISTENING", name: "$help | v" + BOT_VERSION}, status: "online"});
+                let presence: PresenceData = {activity: {type: "LISTENING", name: `$help | ${(GIT_INFO === null) ? `v${BOT_VERSION}` : `${GIT_INFO.short_hash} - ${GIT_INFO.message}`}`}, status: "online"};
+                client.user.setPresence(presence);
                 setInterval(() => {
-                    client.user.setPresence({activity: {type: "LISTENING", name: "$help | v" + BOT_VERSION}, status: "online"});
+                    client.user.setPresence(presence);
                 }, 3600000 /* Update presence every hour */)
 
                 client.guilds.cache.forEach(async guild => {

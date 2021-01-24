@@ -15,6 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import {readFileSync, Stats, statSync} from "fs";
+import {resolve as pathResolve} from "path";
+
+const gitInfoPath = pathResolve(__dirname, "../../", "git.json");
+
 export const BOT_VERSION = "1.0.0"
 export const PRODUCTION = process.env.ECONOMY_ENV == "production";
 export const COOKIE_SIGNATURE = process.env.COOKIE_SIGNATURE;
+export const GIT_INFO: GitInfo = (() => {
+    try {
+        statSync(gitInfoPath);
+        return true;
+    } catch(e) {
+        return false;
+    }
+})() ? JSON.parse(readFileSync(gitInfoPath, {encoding: "utf-8"})) : null;
+
+export type GitInfo = {
+    hash: string,
+    short_hash: string,
+    message: string
+}
