@@ -23,6 +23,7 @@ const gitInfoPath = pathResolve(__dirname, "../../", "git.json");
 export const BOT_VERSION = "1.0.0"
 export const PRODUCTION = process.env.ECONOMY_ENV == "production";
 export const COOKIE_SIGNATURE = process.env.COOKIE_SIGNATURE;
+export const RESTART_SCRIPT = process.env.RESTART_SCRIPT;
 export const GIT_INFO: GitInfo = (() => {
     try {
         statSync(gitInfoPath);
