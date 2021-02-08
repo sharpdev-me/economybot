@@ -37,7 +37,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     
     if(message.mentions.members.size < 1) {
         const userBalance = await getBalance(message.author.id, message.guild.id);
-        userBalance.balance -= balance;
+        userBalance.balance += balance;
         userBalance.save().then(() => {
             message.channel.send("Your balance has been updated!").catch(console.error);
         }).catch(err => {
@@ -49,7 +49,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     let error = false;
     message.mentions.members.forEach(async member => {
         const userBalance = await getBalance(member.id, message.guild.id);
-        userBalance.balance -= balance;
+        userBalance.balance += balance;
         userBalance.save().catch(err => {
             console.error(err);
             error = true;
