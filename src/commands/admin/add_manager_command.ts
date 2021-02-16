@@ -46,7 +46,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     }
 }
 
-export const name = "addmanager";
+export const name = "add_manager";
 export const aliases = ["add_manager"];
 export const category = HelpCategories.ADMIN;
 export const help = "Add a manager to your server. This will allow them to change some settings and users balances.";

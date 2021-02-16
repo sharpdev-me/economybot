@@ -51,6 +51,6 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     }
 }
 
-export const name = "delmanager";
+export const name = "del_manager";
 export const category = HelpCategories.ADMIN;
 export const help = "Removes a manager from your server";
