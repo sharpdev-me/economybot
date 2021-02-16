@@ -28,7 +28,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
         return message.channel.send("You do not have permission to execute this command!").catch(console.error);
     }
     if(args.length < 1) {
-        return message.channel.send("Proper usage is \`add_balance <balance> [user1, user2...]`").catch(console.error);
+        return message.channel.send("Proper usage is `add_balance <balance> [user1, user2...]`").catch(console.error);
     }
     const balance: number = Number(args[0]);
     if(isNaN(balance) || balance == Infinity || balance == -Infinity) {
