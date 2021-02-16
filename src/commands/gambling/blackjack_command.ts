@@ -30,11 +30,18 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     if(args.length < 1) return message.channel.send("Proper usage is `blackjack <bet>`").catch(console.error);
     
     const betAmount = Number(args[0]);
-    console.log(betAmount);
     if(isNaN(betAmount) || !isFinite(betAmount)) return message.channel.send("The bet amount must be a number").catch(console.error);
 
     const bjGame = new Blackjack(betAmount, 1);
-    console.log(bjGame.bet);
+
+    try {
+        const balance = await getBalance(message.author.id, settings.id);
+        balance.balance -= betAmount;
+        balance.save();
+    } catch(e) {
+        console.error(e);
+        return message.channel.send("There was an error taking the bet from your balance. Try again in a few moments.");
+    }
 
     bjGame.author = message.author;
     
@@ -89,13 +96,16 @@ async function endGame(handler: ReactionHandler, gameMessage: Message, bjGame: a
     const channel = gameMessage.channel;
     await gameMessage.delete();
     let response = "";
+    const balance = await getBalance(bjGame.author.id, settings.id);
     if(bjGame.status == 1) {
         response = `It looks like you won the game! Your reward is \`${bjGame.bet} ${settings.currency}\``;
-        let balance = await getBalance(bjGame.author.id, settings.id);
-        balance.balance += bjGame.bet;
+        balance.balance += (bjGame.bet * 2);
         balance.save();
     } else if(bjGame.status == 2) {
-        response = `It looks like you've lost the game!`
+        response = `It looks like you've lost the game! You've just lost \`${bjGame.bet} ${settings.currency}\``;
+    } else if(bjGame.status == 3) {
+        response = `You managed to tie with the dealer. Your money has been returned to you.`;
+        balance.balance += bjGame.bet;
     }
     await channel.send("Your blackjack game is over! The results of your game were:\n" +
         `Player (${bjGame.player.score}): ${bjGame.player.cards.map((e:any) => e.image).join(", ")}\nDealer (${bjGame.dealer.score}): ${bjGame.dealer.cards.map((e:any) => e.image).join(", ")}\n` +
