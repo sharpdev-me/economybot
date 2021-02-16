@@ -106,6 +106,7 @@ async function endGame(handler: ReactionHandler, gameMessage: Message, bjGame: a
     } else if(bjGame.status == 3) {
         response = `You managed to tie with the dealer. Your money has been returned to you.`;
         balance.balance += bjGame.bet;
+        balance.save();
     }
     await channel.send("Your blackjack game is over! The results of your game were:\n" +
         `Player (${bjGame.player.score}): ${bjGame.player.cards.map((e:any) => e.image).join(", ")}\nDealer (${bjGame.dealer.score}): ${bjGame.dealer.cards.map((e:any) => e.image).join(", ")}\n` +
