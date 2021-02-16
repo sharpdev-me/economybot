@@ -25,7 +25,7 @@ const Blackjack: any = require("blackjack-n-deck").Blackjack;
 
 export async function run(args: string[], message: Message, settings?: GuildSettings) {
     if(!settings) return message.channel.send("This command can only be run in a server").catch(console.error);
-    if(settings.enableGambling) return message.channel.send("This server does not have gambling enabled.").catch(console.error);
+    if(!settings.enableGambling) return message.channel.send("This server does not have gambling enabled.").catch(console.error);
 
     if(args.length < 1) return message.channel.send("Proper usage is `blackjack <bet>`").catch(console.error);
     
