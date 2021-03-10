@@ -29,13 +29,18 @@ export async function run(args: string[], message: Message, settings?: GuildSett
 
     if(args.length < 1) return message.channel.send("Proper usage is `blackjack <bet>`").catch(console.error);
     
-    const betAmount = Number(args[0]);
-    if(isNaN(betAmount) || !isFinite(betAmount)) return message.channel.send("The bet amount must be a number").catch(console.error);
+    let betAmount = Number(args[0]);
+    if(isNaN(betAmount) || !isFinite(betAmount) || betAmount <= 0) return message.channel.send("The bet amount must be a number").catch(console.error);
+    betAmount = Math.round(betAmount);
+
+    if(betAmount < settings.minBlackjackBet) return message.channel.send(`The minimum amount required for a bet is \`${settings.minBlackjackBet} ${settings.currency}\``).catch(console.error);
+    if(settings.maxBlackjackBet > 0 && betAmount > settings.maxBlackjackBet) return message.channel.send(`The maximum amount allowed for a bet is \`${settings.maxBlackjackBet} ${settings.currency}\``).catch(console.error);
 
     const bjGame = new Blackjack(betAmount, 1);
 
     try {
         const balance = await getBalance(message.author.id, settings.id);
+        if(balance.balance < betAmount) return message.channel.send("You don't have enough money to make this bet,").catch(console.error);
         balance.balance -= betAmount;
         balance.save();
     } catch(e) {
