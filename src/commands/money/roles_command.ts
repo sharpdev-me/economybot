@@ -37,7 +37,8 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     for(let i = 0; i < roles.length; i++) {
         const role = roles[i];
         const discordRole = await message.guild.roles.fetch(role.id);
-        value += `\`${discordRole.name}\` for \`${role.cost}\` ${settings.currency}\n`;
+        const priceString = role.cost == 0 ? "FREE" : `${role.cost} ${settings.currency}`;
+        value += `\`${discordRole.name}\` for \`${priceString}\`\n`;
     }
 
     embed.setDescription(value);
