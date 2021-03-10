@@ -246,7 +246,7 @@ export async function delRole(id: Snowflake) {
 }
 
 export async function storeOAuthUser(user: OAuthUser) {
-    (await getDatabase()).collection("oauthUsers").replaceOne({state:user.state}, user, {upsert: true});
+    (await getDatabase()).collection("oauthUsers").replaceOne({id:user.id}, user, {upsert: true});
 }
 
 export async function hasOAuthUser(state: string): Promise<boolean> {
