@@ -24,7 +24,18 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     if(!settings) {
         return message.channel.send("This command can only be run in a server!").catch(console.error);
     }
-    const balance = await getBalance(message.author.id, message.guild.id);
+    if(settings.checkOthersBalance && message.mentions.members.size > 0) {
+        const member = message.mentions.members.first();
+        try {
+            const balance = await getBalance(member.id, settings.id);
+            message.channel.send(`${member.displayName}'s balance is \`${balance.balance} ${settings.currency}\``).catch(console.error);
+        } catch(e) {
+            console.error(e);
+            message.channel.send("There was a problem fetching that user's balance.").catch(console.error);
+        }
+        return;
+    }   
+    const balance = await getBalance(message.author.id, settings.id);
     message.channel.send(`Your balance is \`${balance.balance} ${settings.currency}\``).catch(console.error);
 }
 
