@@ -28,12 +28,13 @@ export const settingsDescriptions = {
     refundModifier: "The modifier of the role cost when giving a refund",
     enableGambling: "Whether or not to enable EconomyBot gambling commands",
     minBlackjackBet: "The minimum amount required to enter a blackjack game",
-    maxBlackjackBet: "The maximum amount allowed to enter a blackjack game (set to -1 to have no maximum)",
+    maxBlackjackBet: "The maximum amount allowed to enter a blackjack game (set to 0 to have no maximum)",
     watchMessages: "Enable rewards for sending messages",
     messageReward: "The amount to reward a message",
     messageCooldown: "The time in milliseconds between messages required to get a reward",
     referrals: "Enable getting rewards for inviting new users",
     referrerAmount: "The amount to give a referrer when their link is used",
+    checkOthersBalance: "Allow members to check the balance of others"
 }
 
 export const settingsPermissions: {[key: string]: PermissionString} = {
@@ -53,6 +54,7 @@ export interface GuildSettings {
     allowRoleRefunds: boolean;
     refundModifier: number;
     managers: Snowflake[];
+    checkOthersBalance: boolean;
 
     // Event Settings
     watchMessages: boolean;
@@ -81,6 +83,7 @@ export function emptyGuildSettings(id: Snowflake): GuildSettings {
         allowRoleRefunds: true,
         refundModifier: 0.5,
         managers: [],
+        checkOthersBalance: true,
         watchMessages: false,
         messageReward: 0,
         messageCooldown: 0,
