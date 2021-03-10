@@ -37,7 +37,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     }
     let amount = Math.round(Number(args[1]));
 
-    if(isNaN(amount) || amount == Infinity || amount == -Infinity) {
+    if(isNaN(amount) || !isFinite(amount) || amount <= 0) {
         return message.channel.send("The amount to pay must be a number!").catch(console.error);
     }
 

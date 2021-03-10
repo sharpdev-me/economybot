@@ -56,7 +56,7 @@ export async function run(args: string[], message: Message, settings?: GuildSett
     }
 
     let amount = Number(args[1]);
-    if(isNaN(amount) || amount == Infinity || amount == -Infinity) {
+    if(isNaN(amount) || !isFinite(amount) || amount <= 0) {
         return message.channel.send("The coinflip amount must be a number.").catch(console.error);
     }
 
